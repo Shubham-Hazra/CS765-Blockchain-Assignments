@@ -1,1 +1,1 @@
-# CS765-Blockchain--Assignments
+# CS765-Blockchain-Assignments
