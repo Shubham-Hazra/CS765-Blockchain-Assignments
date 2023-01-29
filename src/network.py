@@ -13,7 +13,7 @@ class Network:
         self.G.add_nodes_from([i for i in range(self.num_nodes)])
 
         sequence = [random.randint(4,8) for i in range(self.num_nodes)] # Each node has 4 to 8 peers
-        # Generate a valid degree sequence
+        # Randomly generate a valid degree sequence
         while not nx.is_graphical(sequence, "hh"): # Check if the given degree sequence is valid 
             sequence = [random.randint(4,8) for i in range(self.num_nodes)]
 
@@ -21,6 +21,7 @@ class Network:
         sequence.sort()
         curr_deg = [0 for i in range(self.num_nodes)] # Maintains the current degree of all the nodes
 
+        # Connects the nodes of the graph
         for i in range(self.num_nodes-1, -1, -1):
             for j in range(i-1, -1, -1):
                 if curr_deg[i] == sequence[i]:
@@ -29,7 +30,11 @@ class Network:
                     self.G.add_edge(i,j)
                     curr_deg[i]+=1
                     curr_deg[j]+=1
+        
+        # Shuffle some nodes to introduce randomness
+        nx.double_edge_swap(self.G, nswap=5, max_tries=10000, seed=None)
 
+        
         # Print the degree sequence
         print(sequence)
 
