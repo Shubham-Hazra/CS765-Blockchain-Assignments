@@ -32,9 +32,8 @@ class Network:
                     curr_deg[j]+=1
         
         # Shuffle some nodes to introduce randomness
-        nx.double_edge_swap(self.G, nswap=5, max_tries=10000, seed=None)
+        nx.double_edge_swap(self.G, nswap=2, max_tries=1000, seed=None)
 
-        
         # Print the degree sequence
         print(sequence)
 
