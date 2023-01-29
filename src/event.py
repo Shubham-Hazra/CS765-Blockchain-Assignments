@@ -2,7 +2,7 @@ import threading
 import time
 
 
-class Message:
+class Event:
     def __init__(self, sender, message, is_block):
         self.sender = sender
         self.is_block = is_block
@@ -10,7 +10,7 @@ class Message:
         self.time = time.time()
 
     def print(self):
-        print("Message from " + str(self.sender) + " at time " +
+        print("Event from " + str(self.sender) + " at time " +
               str(self.time) + " with message " + str(self.message))
 
     def send(self, receiver_function, sleep_time):
@@ -22,6 +22,6 @@ class Message:
 
 
 # Testing
-msg = Message(1, "Hello", False)
+msg = Event(1, "Hello", False)
 msg.print()
 msg.send(print, 2)

@@ -2,6 +2,8 @@ import networkx as nx
 import random 
 import matplotlib.pyplot as plt
 
+from node import Node
+
 class Network:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes; # Number of nodes in theconnected graph
@@ -17,7 +19,11 @@ class Network:
         self.calc_speed(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
         self.set_attrb()
 
-    
+        self.nodes = [Node(i, self.attrb[i], 0) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
+        self.start_nodes() # Start the thread for all the nodes
+        self.connect_peers() # Put the function pointer to the queue of the peers in the lists of the respective nodes
+
+
     def create_graph(self):
 
         # Repeat while the graph is connected
@@ -46,7 +52,7 @@ class Network:
             # Shuffle some nodes to introduce randomness
             nx.double_edge_swap(self.G, nswap=self.num_nodes/4, max_tries=1000, seed=None) # The number of swaps is a hyper parameter
 
-            if nx.is_connected(self.G) and min([val for (node, val) in self.G.degree()]) >= 2:
+            if nx.is_connected(self.G) and min([val for (node, val) in self.G.degree()]) >= 3:
                 break
             else:
                 self.G.clear()
@@ -103,11 +109,23 @@ class Network:
     def set_attrb(self): # Sets the cpu and speed of the node calculated before
         nx.set_node_attributes(self.G, self.attrb)
 
+    def start_nodes(self): # Start the thread for each Node
+        for i in self.nodes:
+            i.start()
+
+    def connect_peers(self):
+        for i in range(self.num_nodes):
+            peers = self.G.neighbors(i)
+            for j in peers:
+                self.nodes[i].add_peer_pointer(self.nodes[j].pid, self.nodes[j].receive_event)
+
 
 # Testing the class
-N = Network(20)
+N = Network(15)
 print("CPU power of first node" , N.G.nodes[0]['cpu'])
 N.show_graph()
+# for i in range(N.num_nodes):
+#     N.nodes[i].print_funct_points()
 
 
 
