@@ -7,6 +7,7 @@ class Network:
         self.num_nodes = num_nodes; # Number of nodes in theconnected graph
         self.G = nx.Graph() # Stores the graph of the network
         self.create_graph() # create the P2P Network
+        self.adj = {} # Stores the dictionary of lists for storing the graph of the network
        
     
     def create_graph(self):
@@ -33,6 +34,10 @@ class Network:
         
         # Shuffle some nodes to introduce randomness
         nx.double_edge_swap(self.G, nswap=2, max_tries=1000, seed=None)
+
+        # Converts Graph to dictionary of lists
+        self.adj = nx.to_dict_of_lists(self.G, nodelist=None)
+        print(self.adj)
 
         # Print the degree sequence
         print(sequence)
