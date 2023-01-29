@@ -36,9 +36,9 @@ class Network:
                         curr_deg[j]+=1
             
             # Shuffle some nodes to introduce randomness
-            nx.double_edge_swap(self.G, nswap=5, max_tries=1000, seed=None)
+            nx.double_edge_swap(self.G, nswap=self.num_nodes/4, max_tries=1000, seed=None) # The number of swaps is a hyper parameter
 
-            if nx.is_connected(self.G) and min([val for (node, val) in self.G.degree()]) >= 4:
+            if nx.is_connected(self.G) and min([val for (node, val) in self.G.degree()]) >= 2:
                 break
             else:
                 self.G.clear()
@@ -56,7 +56,7 @@ class Network:
 
 
 # Testing the class
-N = Network(20)
+N = Network(500)
 
 
 
