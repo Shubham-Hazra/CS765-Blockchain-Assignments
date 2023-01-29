@@ -1,7 +1,7 @@
 import threading
 
 
-class transaction:
+class Transaction:
     id = 0
     lock = threading.Lock()
 
