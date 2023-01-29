@@ -8,7 +8,15 @@ class Network:
         self.G = nx.Graph() # Stores the graph of the network
         self.adj = {} # Stores the dictionary of lists for storing the graph of the network
         self.create_graph() # create the P2P Network
-       
+
+        self.attrb = {} # Dictionary which contain attributes of each node (CPU and Speed)
+        for i in range(self.num_nodes): # Initialize the dictionary
+            self.attrb[i] = {}
+
+        self.calc_cpu(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
+        self.calc_speed(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
+        self.set_attrb()
+
     
     def create_graph(self):
 
@@ -50,13 +58,56 @@ class Network:
         # Print the degree sequence
         print(sequence)
 
+
+    def show_graph(self):
         # Print the graph
         nx.draw(self.G, with_labels=True)
         plt.show()
 
+    def calc_cpu(self, z): # Sets z percent of nodes as low CPU 
+        z = int(z*self.num_nodes/100.0)
+        low_cpu = [] # Maintains a list of nodes whose CPU is set to low
+
+        while True:
+            node = random.randint(0,self.num_nodes)
+            if node not in low_cpu:
+                low_cpu.append(node)
+            if len(low_cpu) >= z:
+                break
+        
+        for i in range(self.num_nodes):
+            if i in low_cpu:
+                self.attrb[i]['cpu'] = 'low'
+            else:
+                self.attrb[i]['cpu'] = "high"
+
+
+    def calc_speed(self, z): # Sets z percent of nodes to low speed ("slow")
+        z = int(z*self.num_nodes/100.0)
+        low_speed = [] # Maintains a list of nodes whose CPU is set to low
+
+        while True:
+            node = random.randint(0,self.num_nodes)
+            if node not in low_speed:
+                low_speed.append(node)
+            if len(low_speed) >= z:
+                break
+        
+        for i in range(self.num_nodes):
+            if i in low_speed:
+                self.attrb[i]['speed'] = 'low'
+            else:
+                self.attrb[i]['speed'] = "high"
+
+
+    def set_attrb(self): # Sets the cpu and speed of the node calculated before
+        nx.set_node_attributes(self.G, self.attrb)
+
 
 # Testing the class
-N = Network(500)
+N = Network(20)
+print("CPU power of first node" , N.G.nodes[0]['cpu'])
+N.show_graph()
 
 
 
