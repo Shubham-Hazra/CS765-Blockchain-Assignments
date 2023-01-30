@@ -148,7 +148,7 @@ N = Network(15)
 print("CPU power of first node" , N.G.nodes[0]['cpu'])
 N.show_graph()
 for edge in N.G.edges:
-    print("Latency between first and second node (in seconds): ", N.get_latency(edge[0],edge[1],1))
+    print("Latency between the nodes of the first edge (in seconds): ", N.get_latency(edge[0],edge[1],17))
     break
 # Debug for node bein able to use the peers' receive_event() function which will put events in the peers' queue
 for i in range(N.num_nodes):
