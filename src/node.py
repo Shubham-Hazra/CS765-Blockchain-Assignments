@@ -22,12 +22,13 @@ class Node(threading.Thread):
     
     # receives the pointer of the neighbor's enqueue function from the Network class and puts it in his list - 
     # so that it can communicate anything by putting events in the neighbour's queue
-    def add_peer_pointer(self, pid, receive_event_funtion):
-        self.peers[pid] = receive_event_funtion
+    def add_peer_pointer(self, pid, receive_event_function):
+        self.peers[pid] = receive_event_function
 
     # This is the function that every neighbour of this node has a pointer to and will use that to put
     # events in this node's queue - which will execute after the assigned time - to simulate delays
     def receive_event(self, event):
+        print("Debug")
         self.queue.put(event)
         self.semaphore.release()
 

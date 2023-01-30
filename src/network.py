@@ -124,8 +124,10 @@ class Network:
 N = Network(15)
 print("CPU power of first node" , N.G.nodes[0]['cpu'])
 N.show_graph()
-# for i in range(N.num_nodes):
-#     N.nodes[i].print_funct_points()
+# Debug for node bein able to use the peers' receive_event() function which will put events in the peers' queue
+for i in range(N.num_nodes):
+    for j in N.G.neighbors(i):  
+        N.nodes[i].peers[j](10)
 
 
 
