@@ -1,8 +1,11 @@
-import networkx as nx
-import random 
+import random
+
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 
 from node import Node
+
 
 class Network:
     def __init__(self, num_nodes):
@@ -17,6 +20,7 @@ class Network:
 
         self.calc_cpu(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
         self.calc_speed(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
+        self.set_latency_attrb() # Sets the latency of the network
         self.set_attrb()
 
         self.nodes = [Node(i, self.attrb[i], 0) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
@@ -108,6 +112,25 @@ class Network:
 
     def set_attrb(self): # Sets the cpu and speed of the node calculated before
         nx.set_node_attributes(self.G, self.attrb)
+    
+    def set_latency_attrb(self):  # Sets the latency of the network
+        for edge in self.G.edges:
+            node1 = edge[0]
+            node2 = edge[1]
+            # Minimum latency between two nodes is 10ms and maximum is 500ms due to the speed of light
+            min_latency = np.random.uniform(10, 500)/1000  # in seconds
+            self.G[node1][node2]['l'] = min_latency
+            if self.attrb[node1]['speed'] == 'low' or self.attrb[node2]['speed'] == 'low':
+                self.G[node1][node2]['c'] = 5 # Link speed is 5Mbps if either of the nodes has low speed
+            else:
+                self.G[node1][node2]['c'] = 100 # Link speed is 100Mbps if both of the nodes have high speed
+            d = 96/(self.G[node1][node2]['c']*1000) + np.random.exponential()  # Queueing delay at node 1
+            self.G[node1][node2]['d'] = d
+        
+        
+    def get_latency(self, node1, node2, m): # Returns the latency between two nodes (m is the size of the message in Mbs)
+        return self.G[node1][node2]['l'] + self.G[node1][node2]['d'] + m/self.G[node1][node2]['c']
+
 
     def start_nodes(self): # Start the thread for each Node
         for i in self.nodes:
@@ -124,6 +147,9 @@ class Network:
 N = Network(15)
 print("CPU power of first node" , N.G.nodes[0]['cpu'])
 N.show_graph()
+for edge in N.G.edges:
+    print("Latency between first and second node (in seconds): ", N.get_latency(edge[0],edge[1],1))
+    break
 # Debug for node bein able to use the peers' receive_event() function which will put events in the peers' queue
 for i in range(N.num_nodes):
     for j in N.G.neighbors(i):  
