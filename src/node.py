@@ -32,8 +32,8 @@ class Node(threading.Thread):
         self.queue.put(event)
         self.semaphore.release()
 
-    # To generate TXNs, with exponentia distribution
-    def gen_transaction(self):
+    # To generate TXNs, with exponential distribution
+    def generate_trans(self):
         pass
 
     # Debugging the function pointer list
