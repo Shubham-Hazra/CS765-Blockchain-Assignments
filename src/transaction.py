@@ -1,4 +1,3 @@
-
 class Transaction:
     def __init__(self,txn_id, sender_id, receiver_id, amount, n): # The simulator ensures distinct transaction ids
         self.txn_id = txn_id
@@ -20,7 +19,7 @@ class Transaction:
 
 # Testing
 if __name__ == "__main__":
-    txn1 = Transaction(0,1, 2, 3)
-    txn2 = Transaction(1, 2, 3, 4)
+    txn1 = Transaction(0,1, 2, 3, 15)
+    txn2 = Transaction(1, 2, 3, 4, 15)
     txn1.print_transaction()
     txn2.print_transaction()

@@ -1,8 +1,10 @@
-from transaction import Transaction
-from block import Block
-from network import Network
 import random
 import time
+
+from block import Block
+from network import Network
+from transaction import Transaction
+
 
 class Event(object):
 
@@ -149,8 +151,9 @@ class ForwardBlock(Event):
             self.block.id,
             self.block.creator_id,
             prev_blk_id,
-            self.block.created_at,
-            len(self.block) + 1
+            self.block.create_time,
+            len(self.block) + 1,
+            self.block.transactions
         )
 
         # Add the block to the blockchain of the node
