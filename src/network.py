@@ -23,10 +23,8 @@ class Network:
         self.set_latency_attrb() # Sets the latency of the network
         self.set_attrb()
 
-        self.nodes = [Node(i, self.attrb[i], 0) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
-        self.start_nodes() # Start the thread for all the nodes
-        self.connect_peers() # Put the function pointer to the queue of the peers in the lists of the respective nodes
-
+        self.nodes = [Node(i, self.attrb[i], 0, 100) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
+        # By default everyone has 100 BTC at the start
 
     def create_graph(self):
 
@@ -126,34 +124,43 @@ class Network:
                 self.G[node1][node2]['c'] = 100 # Link speed is 100Mbps if both of the nodes have high speed
             d = 96/(self.G[node1][node2]['c']*1000) + np.random.exponential()  # Queueing delay at node 1
             self.G[node1][node2]['d'] = d
+
+    def calc_latency(self, node1, node2, packet_size):
+        return self.G[node1][node2]['l'] + packet_size/self.G[node1][node2]['c'] + self.G[node1][node2]['d']
         
         
     def get_latency(self, node1, node2, m): # Returns the latency between two nodes (m is the size of the message in Mbs)
         return self.G[node1][node2]['l'] + self.G[node1][node2]['d'] + m/self.G[node1][node2]['c']
 
 
-    def start_nodes(self): # Start the thread for each Node
-        for i in self.nodes:
-            i.start()
-
-    def connect_peers(self):
-        for i in range(self.num_nodes):
-            peers = self.G.neighbors(i)
-            for j in peers:
-                self.nodes[i].add_peer_pointer(self.nodes[j].pid, self.nodes[j].receive_event)
-
 
 # Testing the class
-N = Network(15)
-print("CPU power of first node" , N.G.nodes[0]['cpu'])
-N.show_graph()
-for edge in N.G.edges:
-    print("Latency between the nodes of the first edge (in seconds): ", N.get_latency(edge[0],edge[1],17))
-    break
+# N = Network(15)
+# print("CPU power of first node" , N.G.nodes[0]['cpu'])
+# N.show_graph()
+# for edge in N.G.edges:
+#     print("Latency between the nodes of the first edge (in seconds): ", N.get_latency(edge[0],edge[1],17))
+#     break
 # Debug for node bein able to use the peers' receive_event() function which will put events in the peers' queue
-for i in range(N.num_nodes):
-    for j in N.G.neighbors(i):  
-        N.nodes[i].peers[j](10)
+# for i in range(N.num_nodes):
+#     for j in N.G.neighbors(i):  
+#         N.nodes[i].peers[j](10)
+
+
+
+
+
+
+
+ # def start_nodes(self): # Start the thread for each Node
+    #     for i in self.nodes:
+    #         i.start()
+
+    # def connect_peers(self):
+    #     for i in range(self.num_nodes):
+    #         peers = self.G.neighbors(i)
+    #         for j in peers:
+    #             self.nodes[i].add_peer_pointer(self.nodes[j].pid, self.nodes[j].receive_event)
 
 
 
