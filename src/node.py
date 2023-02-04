@@ -49,6 +49,8 @@ class Node:
     # Function to check if the block is valid
     # Assuming a global transaction list and a global balance list
     def validate_block(self, block):
+        if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
+            return False
         for txn in block.transactions:
             if txn in self.included_txn: # Checking if the transaction is already included in the blockchain
                 return False
@@ -60,7 +62,7 @@ class Node:
         if self.validate_block(block): # Checking if the block is valid
             self.blockchain[block.block_id] = block # Adding the block to the blockchain
             self.blockchain_tree[block.block_id] = {"parent": block.previous_id} # Adding the block to the blockchain tree
-            self.blockchain[block.block_id].length = self.blockchain[self.blockchain_tree[block.block_id]["parent"]].length + 1 # Updating the length of the block
+            self.blockchain[block.block_id].length = self.blockchain[block.previous_id].length + 1 # Updating the length of the block
             self.included_txn.extend(block.transactions) # Adding the transactions to the list of included transactions
             self.remove_common_TXN(block) # Removing the transactions from the list of transactions that the peer has seen but not included in any block
             if self.blockchain[block.block_id].length > self.max_len: # Checking if the block is the longest block
@@ -107,7 +109,11 @@ class Node:
         tree.show()
 
 N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100)
-print(N.peers)
+N.add_block(Block(1, "Block_0", 0, ["txn_1", "txn_2"]))
+N.add_block(Block(2, "Block_1", 1, ["txn_3", "txn_4"]))
+N.add_block(Block(3, "Block_2", 2, ["txn_5", "txn_6"]))
+print(N.blockchain_tree)
+# N.print_blockchain() # Function not working have to debug
 
 
 # self.semaphore = threading.Semaphore(0)
