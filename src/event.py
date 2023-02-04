@@ -151,7 +151,7 @@ class ForwardBlock(Event):
             self.block.id,
             self.block.creator_id,
             prev_blk_id,
-            self.block.create_time,
+            self.block.created_at,
             len(self.block) + 1,
             self.block.transactions
         )
@@ -159,7 +159,7 @@ class ForwardBlock(Event):
         # Add the block to the blockchain of the node
         current.blocks[new_block.id] = {"parent": prev_blk_id}
         # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
-        current.blocksReceiveTime.append(new_block.create_time)
+        current.blocksReceiveTime.append(new_block.created_at)
 
 
         # Forwarding the block to its peers
