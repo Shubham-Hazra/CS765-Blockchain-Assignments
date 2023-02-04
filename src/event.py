@@ -74,7 +74,7 @@ class CreateTXN(Event):
 
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
-            t = N.calc_latency(self.node_id, neighbor, 8000) # TXN is 8000 bits
+            t = N.calc_latency(self.node_id, neighbor, .008) # TXN is 8000 bits = 1KB = .008MB
 
             simulator.events.put(ReceiveTXN(
                 new_txn,
@@ -113,7 +113,7 @@ class ReceiveTXN(Event):
 
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
-            t = N.calc_latency(self.node_id, neighbor, 8000) # TXN is 8000 bits
+            t = N.calc_latency(self.node_id, neighbor, .008) # TXN is 8000 bits = 1KB = .008MB
 
             simulator.events.put(ReceiveTXN(
                 self.transaction,

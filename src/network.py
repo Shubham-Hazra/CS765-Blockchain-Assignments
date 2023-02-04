@@ -125,7 +125,7 @@ class Network:
             d = 96/(self.G[node1][node2]['c']*1000) + np.random.exponential()  # Queueing delay at node 1
             self.G[node1][node2]['d'] = d
 
-    def calc_latency(self, node1, node2, packet_size):
+    def calc_latency(self, node1, node2, packet_size):# Returns the latency between two nodes (packet_size is the size of the message in Mbs)
         return self.G[node1][node2]['l'] + packet_size/self.G[node1][node2]['c'] + self.G[node1][node2]['d']
         
         

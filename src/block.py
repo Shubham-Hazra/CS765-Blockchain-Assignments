@@ -12,8 +12,8 @@ class Block:
         self.length = length # Length of the block initially set to 0
 
 
-    def get_size(self): # Function to get the size of the block
-        return 1 + len(self.transactions)
+    def get_size(self): # Function to get the size of the block in Mbs
+        return (1 + len(self.transactions)) * 0.008 # Assuming that each transaction is 1KB and the coinbase is 1KB
 
     # Function for printing block information
     def print_block(self):
