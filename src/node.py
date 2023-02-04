@@ -14,13 +14,14 @@ class Node:
 
         self.pid = pid  # Unique Id of the peer
         self.cpu = attrb['cpu']  # CPU speed of the peer
+        self.hashing_power = attrb['hashing_power']  # Hashing power of the peer
         self.speed = attrb['speed']  # Speed of the peer
         self.peers = {}  # Storing the pointer for function to put events in Queues of peers
         self.BTC = BTC  # Initial BTC balance of the peer
         self.blockchain_tree = {"Block_0": {"parent": None}} # Blockchain tree of the peer
         self.blockchain = {"Block_0":Block(None,None,None,None,0,0)}  # Blockchain of the peer - stores the block objects, Initially the genesis block is added
-        self.longest_chain = ["Block_0"] 
-        self.max_len = 0 
+        self.longest_chain = ["Block_0"] # Longest chain of the peer as a list of block ids
+        self.max_len = 0  # Length of the longest chain
         self.txn_list = []  # List of transactions that the peer has seen but not included in any block
         self.included_txn = []  # List of transactions that the peer has included in a block
 
@@ -81,14 +82,9 @@ class Node:
         upper_limit = max(len(self.txn_list),999) # Upper limit of the number of transactions that can be included in the block
         num_txn_to_mine = random.randint(1,upper_limit) # Number of transactions to be included in the block
         txn_to_mine = random.sample(self.txn_list,num_txn_to_mine) # Transactions to be included in the block
-        if self.cpu == "high":
-            hashing_power = HIGH_CPU_HASHRATE
-        else:
-            hashing_power = LOW_CPU_HASHRATE
-        mining_time = I/hashing_power + random.expovariate(1) # Mining time of the block
+        mining_time = I/self.hashing_power + random.expovariate(1) # Mining time of the block
         block = Block(self.pid, self.longest_chain[-1], CURRENT_TIME, txn_to_mine) # Creating the block
         mine = MineBlock(self.pid,self.pid, CURRENT_TIME, CURRENT_TIME + mining_time) # Creating the event
-        mine.addEvent() # Adding the block to the event
     
 
     
@@ -110,7 +106,7 @@ class Node:
                     break
         tree.show()
 
-N = Node(1, {"cpu": "low", "speed": "high"}, 100)
+N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100)
 print(N.peers)
 
 

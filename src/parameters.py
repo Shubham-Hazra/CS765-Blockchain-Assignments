@@ -35,6 +35,4 @@ for i in range(5, num_peers):
     a["P_"+str(i)] = a["P_"+str(i % 5)]
 
 CURRENT_TIME = 0 # Current time of the simulation
-LOW_CPU_HASHRATE = 0 # Fraction hashing power of the low CPU node
-HIGH_CPU_HASHRATE = 0 # Fraction hashing power of the high CPU node
 I = 600 # Average inter arrival time between two consecutive blocks
