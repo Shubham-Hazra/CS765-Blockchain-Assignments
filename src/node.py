@@ -73,7 +73,10 @@ class Node:
             print(f"{self.pid} says {block.block_id} is invalid")
 
     def add_txn(self, txn_id): # Adding a transaction to the list of transactions that the peer has seen but not included in any block
-        self.txn_list.append(txn_id)
+        if txn_id not in self.txn_list:
+            self.txn_list.append(txn_id)
+        else:
+            print(f"{self.pid} says {txn_id} is already in the list of transactions")
 
     def remove_common_TXN(self, block): # Removing the transactions that are included in the block from the list of transactions that the peer has seen but not included in any block
         for txn in block.transactions:
@@ -108,11 +111,19 @@ class Node:
                     break
         tree.show()
 
-N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100)
-N.add_block(Block(1, "Block_0", 0, ["txn_1", "txn_2"]))
-N.add_block(Block(2, "Block_1", 1, ["txn_3", "txn_4"]))
-N.add_block(Block(3, "Block_2", 2, ["txn_5", "txn_6"]))
-print(N.blockchain_tree)
+# Testing the code
+if __name__ == "__main__":
+    N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100)
+    N.add_block(Block(1, "Block_0", 0, ["txn_1", "txn_2"]))
+    N.add_block(Block(2, "Block_0", 1, ["txn_3", "txn_4"]))
+    N.add_block(Block(3, "Block_1", 2, ["txn_5", "txn_6"]))
+    print(N.blockchain_tree)
+    print(N.find_longest_chain())
+    print(f"Maximum length: {N.max_len}")
+    print(N.included_txn)
+    N.add_txn(N.included_txn[2]) 
+    print(N.txn_list)
+    N.add_txn("txn_3")
 # N.print_blockchain() # Function not working have to debug
 
 
