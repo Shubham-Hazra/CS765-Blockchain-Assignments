@@ -7,7 +7,7 @@ class Simulator:
     def __init__(self, n, z, tm, bm, max_steps):
         self.N = Network(n)
         self.tm = tm # Mean transaction interarrival time
-        self.tm = tm # Mean block interarrival time
+        self.bm = bm # Mean block interarrival time
         self.txn_id = 0
         self.events = PriorityQueue()
         self.initialize_events()
@@ -23,6 +23,8 @@ class Simulator:
 
     def transaction_delay(self):
         return random.expovariate(1 / self.tm)
+    def block_delay(self):
+        return random.expovariate(1 / self.bm)
 
     def run(self, max_steps = 10000):
         step_count = 0
@@ -33,7 +35,7 @@ class Simulator:
                 print("Simulation Complete!!")
                 break
             print("Step Count: ", step_count)
-            current_event.run(self.N, self)
+            current_event.addEvent(self.N, self)
             step_count+=1
 
 

@@ -27,7 +27,7 @@ class CreateTXN(Event):
             node_id, creator_id, create_time, run_time
         )     
 
-    def run(self, N, simulator) :  
+    def addEvent(self, N, simulator) :  
 
         # Creates a TXN setting:
         # 1. randomly assigns a receiving node
@@ -96,7 +96,7 @@ class ReceiveTXN(Event):
         )
         self.transaction = transaction
 
-    def run(self, N, simulator):
+    def addEvent(self, N, simulator):
         # Check the boolean array whether the node has already seen this txn
         if self.transaction.received[self.node_id] == 1: # Already seen this TXN
             print(self.node_id, "has already seen this TXN")
