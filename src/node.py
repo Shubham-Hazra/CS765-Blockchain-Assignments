@@ -10,7 +10,9 @@ class Node:
         self.speed = attrb['speed'] # Speed of the peer
         self.peers = {} # Storing the pointer for function to put events in Queues of peers
         self.BTC =  BTC
-        self.txn_list = {}
+        self.transactions = []
+        self.blocks = {} # Stores the blockchain as seen by the node
+        self.blocksReceiveTime = [] # Stores the list of time of arrival of blocks by other nodes - to check whether new block has been received between t_k and t_k + T_k (as written in the problem statement)
 
     # receives the pointer of the neighbor's enqueue function from the Network class and puts it in his list - 
     # so that it can communicate anything by putting events in the neighbour's queue
@@ -20,6 +22,12 @@ class Node:
     # Debugging the function pointer list
     def print_funct_points(self):
         print (self.peers)
+
+    def remove_common_transactions(self, block_transactions):
+        ####### IMPLEMENT THIS !!!!!!##########
+        # removes common transactions between block_transaction list and self.transactions from self.transactions
+        pass
+        
 
 N = Node(1, {"cpu": "low", "speed": "high"},2, 100)
 print(N.peers)

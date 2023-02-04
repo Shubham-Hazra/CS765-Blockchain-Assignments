@@ -1,4 +1,5 @@
 from transaction import Transaction
+from block import Block
 from network import Network
 import random
 import time
@@ -90,9 +91,9 @@ class CreateTXN(Event):
 
 class ReceiveTXN(Event):
 
-    def __init__(self, transaction, node_id, creator_id, created_at, run_at):
+    def __init__(self, transaction, node_id, creator_id, create_time, run_time):
         super(ReceiveTXN, self).__init__(
-            node_id, creator_id, created_at, run_at
+            node_id, creator_id, create_time, run_time
         )
         self.transaction = transaction
 
@@ -119,6 +120,72 @@ class ReceiveTXN(Event):
                 self.run_time,
                 self.run_time + t
             ))
+
+class ForwardBlock(Event):
+    def __init__(self, block, node_id, creator_id, creat_time, run_time):
+        super(ForwardBlock, self).__init__(
+            node_id, creator_id, creat_time, run_time
+        )
+        self.block = block
+    
+    def run(self, N, simulator): 
+        current = N.nodes[self.node_id]
+
+        # Do nothing if the block has already been seen
+        if self.block.id in current.blocks: # MAKE A DICTIONARY OF BLOCKS SEEN BY THE NODE
+            return
+
+        # Return the ID of the previous block
+        prev_blk_id = current.blocks.get(self.block.prev_block_id)
+        if prev_blk_id is None:
+            return
+        prev_blk_id = prev_blk_id["parent"]
+
+        # Remove common transactions from the node's TXN pool which match with the TXNs in the block
+        current.remove_common_TXN(self.block.transactions)
+
+        # Make a new block to add to the node's tree
+        new_block = Block(
+            self.block.id,
+            self.block.creator_id,
+            prev_blk_id,
+            self.block.created_at,
+            len(self.block) + 1
+        )
+
+        # Add the block to the blockchain of the node
+        current.blocks[new_block.id] = {"parent": prev_blk_id}
+        # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
+        current.blocksReceiveTime.append(new_block.create_time)
+
+
+        # Forwarding the block to its peers
+        for neighbor in N.G.neighbors(self.node_id):
+
+            # Exclude the crator of the block
+            if neighbor != self.block.creator_id:
+
+                t = N.calc_latency(self.node_id, neighbor, 8000*len(self.block.transactions)) # To calculate the latency of the block based on the number of transactions in the block
+
+                simulator.events.put(ForwardBlock(
+                    self.block,
+                    neighbor,
+                    self.node_id,
+                    self.run_time,
+                    self.run_time + t
+                ))
+
+        # After the block receives the Block from its peers, The node starts the PoW again - See last paragraph of the Problem statement 7th statement
+        simulator.events.put(MineBlock(
+            self.node_id,
+            self.node_id,
+            self.run_time,
+            self.run_time + simulator.block_delay()
+        ))
+
+class MineBlock(Event):
+    pass
+
 
 
 
