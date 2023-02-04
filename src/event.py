@@ -128,7 +128,7 @@ class ForwardBlock(Event):
         )
         self.block = block
     
-    def run(self, N, simulator): 
+    def addEvent(self, N, simulator): 
         current = N.nodes[self.node_id]
 
         # Do nothing if the block has already been seen
@@ -174,17 +174,28 @@ class ForwardBlock(Event):
                     self.run_time,
                     self.run_time + t
                 ))
-
+        #######################################################################################################################################
         # After the block receives the Block from its peers, The node starts the PoW again - See last paragraph of the Problem statement 7th statement
-        simulator.events.put(MineBlock(
+        #######################################################################################################################################
+        simulator.events.put(MineBlock( ################ THIS CORRESPONDS TO TIME t_k - the TIME FROM WHICH THE NODE WAITS TO CHECK WHETHER ANY OTHER BLCK RRIVES OR NOT (for T_k time)
             self.node_id,
             self.node_id,
             self.run_time,
-            self.run_time + simulator.block_delay()
+            self.run_time + simulator.block_delay() # Update block_delay() as described in simulating PoW section - DO NOT TAKE EXPONENTIAL RV
         ))
 
 class MineBlock(Event):
-    pass
+    def __init__(self, node_id, creator_id, create_time, run_time):
+        super(MineBlock, self).__init__(
+            node_id, creator_id, create_time, run_time)
+        
+    def addEvent(self, N, simulator):
+        current = N.nodes[self.node_id]
+
+        for start_time_prev in current.blocksReceiveTime:
+            if start_time_prev > self.run_time: # WHEN THE BLOCK IS "TRIED" TO BE MINED (t_k + T_k or self.run_time), check whether ANY OTHER BLOCK ARRIVED
+                return
+        
 
 
 
