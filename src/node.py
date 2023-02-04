@@ -1,7 +1,12 @@
 import collections
+import random
 from queue import Queue
 
+from treelib import Tree
+
 from block import *
+from event import *
+from parameters import *
 
 
 class Node:
@@ -13,7 +18,7 @@ class Node:
         self.peers = {}  # Storing the pointer for function to put events in Queues of peers
         self.BTC = BTC  # Initial BTC balance of the peer
         self.blockchain_tree = {"Block_0": {"parent": None}} # Blockchain tree of the peer
-        self.blockchain = {"Block_0":Block(None,0,None,0,None,None)}  # Blockchain of the peer
+        self.blockchain = {"Block_0":Block(None,None,None,None,0,0)}  # Blockchain of the peer - stores the block objects, Initially the genesis block is added
         self.longest_chain = ["Block_0"] 
         self.max_len = 0 
         self.txn_list = []  # List of transactions that the peer has seen but not included in any block
@@ -60,17 +65,50 @@ class Node:
             if self.blockchain[block.block_id].length > self.max_len: # Checking if the block is the longest block
                 self.max_len = self.blockchain[block.block_id].length # Updating the length of the longest chain
                 self.longest_chain = self.find_longest_chain() # Updating the longest chain
-            print(f"{self.pid} says {block.block_id} is valid and added to the blockchain")
+            print(f"{self.pid} says {block.block_id} is valid and added to its blockchain")
         else:
             print(f"{self.pid} says {block.block_id} is invalid")
 
-    def add_txn(self, txn_id):
+    def add_txn(self, txn_id): # Adding a transaction to the list of transactions that the peer has seen but not included in any block
         self.txn_list.append(txn_id)
 
-    def remove_common_TXN(self, block):
+    def remove_common_TXN(self, block): # Removing the transactions that are included in the block from the list of transactions that the peer has seen but not included in any block
         for txn in block.transactions:
             if txn in self.txn_list:
                 del self.txn_list[txn]
+    
+    def mine_block(self):
+        upper_limit = max(len(self.txn_list),999) # Upper limit of the number of transactions that can be included in the block
+        num_txn_to_mine = random.randint(1,upper_limit) # Number of transactions to be included in the block
+        txn_to_mine = random.sample(self.txn_list,num_txn_to_mine) # Transactions to be included in the block
+        if self.cpu == "high":
+            hashing_power = HIGH_CPU_HASHRATE
+        else:
+            hashing_power = LOW_CPU_HASHRATE
+        mining_time = I/hashing_power + random.expovariate(1) # Mining time of the block
+        block = Block(self.pid, self.longest_chain[-1], CURRENT_TIME, txn_to_mine) # Creating the block
+        mine = MineBlock(self.pid,self.pid, CURRENT_TIME, CURRENT_TIME + mining_time) # Creating the event
+        mine.addEvent() # Adding the block to the event
+    
+
+    
+    def print_blockchain(self):
+        added = set()
+        tree = Tree()
+        dict_ = self.blockchain_tree.copy()
+        while dict_:  # while dict_ is not empty
+            for key, value in dict_.items():
+                if value['parent'] in added:
+                    tree.create_node(key, key, parent=value['parent'])
+                    added.add(key)
+                    dict_.pop(key)
+                    break
+                elif value['parent'] is None:
+                    tree.create_node(key, key)
+                    added.add(key)
+                    dict_.pop(key)
+                    break
+        tree.show()
 
 N = Node(1, {"cpu": "low", "speed": "high"}, 100)
 print(N.peers)
