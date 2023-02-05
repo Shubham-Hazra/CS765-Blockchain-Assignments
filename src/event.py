@@ -65,6 +65,9 @@ class CreateTXN(Event):
         # Since this node has itself created the TXN, flip its value to 1 in the boolean array
         new_txn.received[self.node_id] = 1
 
+        # Add the TXN id to the TXN pool of the creator
+        current.add_txn(new_txn.id)
+
         # simulator.events.put(CreateTXN(
         #     self.node_id,
         #     self.node_id,
@@ -100,6 +103,9 @@ class ReceiveTXN(Event):
         self.transaction = transaction
 
     def addEvent(self, N, simulator):
+        # Create object of the current node
+        current = N.nodes[self.node_id]
+
         # Check the boolean array whether the node has already seen this txn
         if self.transaction.received[self.node_id] == 1: # Already seen this TXN
             print(self.node_id, "has already seen this TXN")
@@ -110,6 +116,9 @@ class ReceiveTXN(Event):
         # For debugging
         print("TXN Fwd:", self.node_id, "heard that ", end = " ")
         self.transaction.print_transaction()
+
+        # Add the TXN id to the TXN pool of the creator
+        current.add_txn(self.transaction.id)
 
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
@@ -156,11 +165,10 @@ class ForwardBlock(Event):
             self.block.transactions
         )
 
-        # Add the block to the blockchain of the node
-        current.blocks[new_block.id] = {"parent": prev_blk_id}
+        # Add the block to the blockchain of the node and removes common TXNs from the TXN pool of the node
+        current.add_block(self.block)
         # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
-
-        current.blocksReceiveTime.append(new_block.run_time) # To store the execution time of the event so that we can ensure no bok has arrived between t_k and T_k
+        current.blocksReceiveTime.append(self.run_time) # To store the execution time of the event so that we can ensure no block has arrived between t_k and T_k
 
         # Forwarding the block to its peers
         for neighbor in N.G.neighbors(self.node_id):
@@ -184,7 +192,7 @@ class ForwardBlock(Event):
             self.node_id,
             self.node_id,
             self.run_time,
-            self.run_time + simulator.block_delay() # Update block_delay() as described in simulating PoW section - DO NOT TAKE EXPONENTIAL RV
+            self.run_time + current.get_PoW_delay() # Updated block_delay() as described in simulating PoW section
         ))
 
 class MineBlock(Event):
@@ -200,7 +208,48 @@ class MineBlock(Event):
         for block_rcv_time in current.blocksReceiveTime: 
             if block_rcv_time > self.create_time and block_rcv_time < self.run_time:
                 return
+
+        # Traverse the longest chain and find all transactions that've been spent
+        longest_chain = current.get_longest_chain()
+        last_blck = longest_chain[0] # Stores the id of the block which is being mined in the blockchain of that node
+
+        # Get TXn to be included in the block (all the maximum limits and other conditions are handled by the node)
+        txn_to_include = current.get_TXN_to_include()
+
+        # To terminate the block mining process if the node has no TXNs to include in the block
+        if not txn_to_include:
+            return
         
+        # Include the mining fee TXN in the block
+        miningTXN = Transaction(simulator.mining_txn_id, current.id, current.id, 50, len(N.nodes))
+        txn_to_include+=miningTXN
+    
+        # Generate a new block
+        new_blk = Block(current.pid,last_blck, txn_to_include,  self.run_time, len(longest_chain))
+        simulator.block_id += 1
+
+        # Add the block to my chain
+        current.add_block(new_blk)
+
+        # Update the mining reward in the creator's block
+        current.coins += 50
+
+        # Forwarding the block to its peers
+        for neighbor in N.G.neighbors(self.node_id):
+
+            # Exclude the crator of the block
+            if neighbor != new_blk.creator_id:
+
+                t = N.calc_latency(self.node_id, neighbor, 8000*len(new_blk.transactions)) # To calculate the latency of the block based on the number of transactions in the block
+
+                simulator.events.put(ForwardBlock(
+                    new_blk,
+                    neighbor,
+                    self.node_id,
+                    self.run_time,
+                    self.run_time + t
+                ))
+
 
 
 

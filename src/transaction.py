@@ -5,7 +5,10 @@ class Transaction:
         self.sender_id = sender_id
         self.receiver_id = receiver_id
         self.amount = amount
-        self.message = f"{self.id}: {self.sender_id} pays {self.receiver_id} {self.amount} coins"
+        if txn_id >=0:
+            self.message = f"{self.id}: {self.sender_id} pays {self.receiver_id} {self.amount} coins"
+        else:
+            self.message = f"{self.id}: {self.sender_id} mines {self.amount} coins"
         self.received = [0] * n  # n is the number of peers in the network
 
     # Function for printing transaction information
@@ -15,7 +18,6 @@ class Transaction:
     # Function for getting transaction message
     def get_transaction(self):
         return self.message
-
 
 # Testing
 if __name__ == "__main__":

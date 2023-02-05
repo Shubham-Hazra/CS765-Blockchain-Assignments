@@ -55,7 +55,7 @@ class Network:
             # Shuffle some nodes to introduce randomness
             nx.double_edge_swap(self.G, nswap=self.num_nodes/4, max_tries=1000, seed=None) # The number of swaps is a hyper parameter
 
-            if nx.is_connected(self.G) and min([val for (node, val) in self.G.degree()]) >= 3:
+            if nx.is_connected(self.G) and min([val for (node, val) in self.G.degree]) >= 3:
                 break
             else:
                 self.G.clear()
@@ -143,20 +143,12 @@ class Network:
                 self.attrb[i]['hashing_power'] = hashing_power*10
 
 # Testing the class
-# N = Network(15)
-# print("CPU power of first node" , N.G.nodes[0]['cpu'])
-# N.show_graph()
-# for edge in N.G.edges:
-#     print("Latency between the nodes of the first edge (in seconds): ", N.get_latency(edge[0],edge[1],17))
-#     break
-# Debug for node bein able to use the peers' receive_event() function which will put events in the peers' queue
-# for i in range(N.num_nodes):
-#     for j in N.G.neighbors(i):  
-#         N.nodes[i].peers[j](10)
-
-
-
-
+N = Network(15)
+print("CPU power of first node" , N.G.nodes[0]['cpu'])
+N.show_graph()
+for edge in N.G.edges:
+    print("Latency between the nodes of the first edge (in seconds): ", N.get_latency(edge[0],edge[1],17))
+    break
 
 
 

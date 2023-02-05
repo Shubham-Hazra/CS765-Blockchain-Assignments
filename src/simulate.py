@@ -1,7 +1,7 @@
 import random
 from queue import PriorityQueue
 
-from event import CreateTXN, Event, ReceiveTXN
+from event import CreateTXN, Event, ReceiveTXN, MineBlock
 from network import Network
 
 
@@ -13,6 +13,8 @@ class Simulator:
         self.Ttx = Ttx # Mean transaction interarrival time
         self.I = I # Mean block interarrival time
         self.txn_id = 0
+        self.block_id = 0
+        self.mining_txn_id = -1
         self.events = PriorityQueue()
         self.initialize_events()
         self.run(max_steps)
@@ -20,6 +22,9 @@ class Simulator:
     def initialize_events(self):
         print(len(self.N.nodes))
         for node in self.N.nodes:
+            self.events.put(MineBlock(
+                node.pid, node.pid, 0, node.get_PoW_delay()
+            ))
             self.events.put(CreateTXN(
                 node.pid, node.pid, 0, self.transaction_delay()
             ))
@@ -28,8 +33,9 @@ class Simulator:
     def transaction_delay(self):
         return random.expovariate(1 / self.Ttx)
 
-    def block_delay(self):
-        return random.expovariate(1 / self.I)
+    # The delay for mining is included in Node class
+    # def block_delay(self):
+    #     return random.expovariate(1 / self.I)
 
     def run(self, max_steps = 10000):
         step_count = 0

@@ -5,7 +5,7 @@ from queue import Queue
 from treelib import Tree
 
 from block import *
-from event import *
+# from event import *
 from parameters import *
 
 
@@ -34,6 +34,31 @@ class Node:
     def print_funct_points(self):
         print(self.peers)
 
+######################################################################################################################################################
+    # The following functions will be used to add the block that the node has heard, to its blockchain and remove common TXNs from its TXN pool
+     
+    # Function to add a block to the blockchain
+    def add_block(self, block):
+        if self.validate_block(block): # Checking if the block is valid
+            self.blockchain[block.block_id] = block # Adding the block to the blockchain
+            self.blockchain_tree[block.block_id] = {"parent": block.previous_id} # Adding the block to the blockchain tree
+            self.blockchain[block.block_id].length = self.blockchain[block.previous_id].length + 1 # Updating the length of the block
+            self.included_txn.extend(block.transactions) # Adding the transactions to the list of included transactions
+            self.remove_common_TXN(block) # Removing the transactions from the list of transactions that the peer has seen but not included in any block
+            if self.blockchain[block.block_id].length > self.max_len: # Checking if the block is the longest block
+                self.max_len = self.blockchain[block.block_id].length # Updating the length of the longest chain
+                self.longest_chain = self.find_longest_chain() # Updating the longest chain
+            print(f"{self.pid} says {block.block_id} is valid and added to its blockchain")
+            return True
+        else:
+            print(f"{self.pid} says {block.block_id} is invalid")
+            return False
+
+    def remove_common_TXN(self, block): # Removing the transactions that are included in the block from the list of transactions that the peer has seen but not included in any block
+        for txn in block.transactions:
+            if txn in self.txn_list:
+                del self.txn_list[txn]
+
     # Function to find the longest chain in the blockchain
     def find_longest_chain(self):
         longest_chain = []
@@ -56,21 +81,9 @@ class Node:
                 return False
             else:
                 return True # Assuming that a block is broadcasted only if the balances are non-negative and hence the block is valid
-        
-    # Function to add a block to the blockchain
-    def add_block(self, block):
-        if self.validate_block(block): # Checking if the block is valid
-            self.blockchain[block.block_id] = block # Adding the block to the blockchain
-            self.blockchain_tree[block.block_id] = {"parent": block.previous_id} # Adding the block to the blockchain tree
-            self.blockchain[block.block_id].length = self.blockchain[block.previous_id].length + 1 # Updating the length of the block
-            self.included_txn.extend(block.transactions) # Adding the transactions to the list of included transactions
-            self.remove_common_TXN(block) # Removing the transactions from the list of transactions that the peer has seen but not included in any block
-            if self.blockchain[block.block_id].length > self.max_len: # Checking if the block is the longest block
-                self.max_len = self.blockchain[block.block_id].length # Updating the length of the longest chain
-                self.longest_chain = self.find_longest_chain() # Updating the longest chain
-            print(f"{self.pid} says {block.block_id} is valid and added to its blockchain")
-        else:
-            print(f"{self.pid} says {block.block_id} is invalid")
+
+########################################################################################################################################
+    # The following function will be used at the time of creating and forwarding TXNs
 
     def add_txn(self, txn_id): # Adding a transaction to the list of transactions that the peer has seen but not included in any block
         if txn_id not in self.txn_list:
@@ -78,21 +91,21 @@ class Node:
         else:
             print(f"{self.pid} says {txn_id} is already in the list of transactions")
 
-    def remove_common_TXN(self, block): # Removing the transactions that are included in the block from the list of transactions that the peer has seen but not included in any block
-        for txn in block.transactions:
-            if txn in self.txn_list:
-                del self.txn_list[txn]
-    
-    def mine_block(self):
+########################################################################################################################################
+    # The following function will be used when node is trying to create new block
+
+    # Get TXN from the TXN pool which are not yet included in any block that the node has heard
+    def get_TXN_to_include(self):
         upper_limit = max(len(self.txn_list),999) # Upper limit of the number of transactions that can be included in the block
         num_txn_to_mine = random.randint(1,upper_limit) # Number of transactions to be included in the block
         txn_to_mine = random.sample(self.txn_list,num_txn_to_mine) # Transactions to be included in the block
-        mining_time = I/self.hashing_power + random.expovariate(1) # Mining time of the block
-        block = Block(self.pid, self.longest_chain[-1], CURRENT_TIME, txn_to_mine) # Creating the block
-        mine = MineBlock(self.pid,self.pid, CURRENT_TIME, CURRENT_TIME + mining_time) # Creating the event
-    
+        return txn_to_mine
 
-    
+    def get_PoW_delay(self):
+        return I/self.hashing_power + random.expovariate(1) # Mining time of the block
+
+#########################################################################################################################################
+    # Following function will be used at the end to print the blockchain (tree form) of the node
     def print_blockchain(self):
         added = set()
         tree = Tree()
@@ -110,6 +123,7 @@ class Node:
                     dict_.pop(key)
                     break
         tree.show()
+#############################################################################################################################################
 
 # Testing the code
 if __name__ == "__main__":
