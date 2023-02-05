@@ -24,7 +24,7 @@ class Node:
         self.max_len = 0  # Length of the longest chain
         self.txn_list = []  # List of transactions that the peer has seen but not included in any block
         self.included_txn = []  # List of transactions that the peer has included in a block
-
+        self.blocksReceiveTime = []
     # receives the pointer of the neighbor's enqueue function from the Network class and puts it in his list -
     # so that it can communicate anything by putting events in the neighbour's queue
     def add_peer_pointer(self, pid, receive_event_function):
@@ -57,7 +57,7 @@ class Node:
     def remove_common_TXN(self, block): # Removing the transactions that are included in the block from the list of transactions that the peer has seen but not included in any block
         for txn in block.transactions:
             if txn in self.txn_list:
-                del self.txn_list[txn]
+                self.txn_list.remove(txn)
 
     # Function to find the longest chain in the blockchain
     def find_longest_chain(self):
@@ -96,8 +96,8 @@ class Node:
 
     # Get TXN from the TXN pool which are not yet included in any block that the node has heard
     def get_TXN_to_include(self):
-        upper_limit = max(len(self.txn_list),999) # Upper limit of the number of transactions that can be included in the block
-        num_txn_to_mine = random.randint(1,upper_limit) # Number of transactions to be included in the block
+        upper_limit = max(len(self.txn_list),998) # Upper limit of the number of transactions that can be included in the block
+        num_txn_to_mine = random.randint(1,min(upper_limit,len(self.txn_list))) # Number of transactions to be included in the block
         txn_to_mine = random.sample(self.txn_list,num_txn_to_mine) # Transactions to be included in the block
         return txn_to_mine
 

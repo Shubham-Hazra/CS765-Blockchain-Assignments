@@ -201,6 +201,7 @@ class MineBlock(Event):
             node_id, creator_id, create_time, run_time)
         
     def addEvent(self, N, simulator):
+        print("BLOCK MINED")
         current = N.nodes[self.node_id]
 
         # The block generation event was created at t_k (create_time) and scheduled for t_k + T_k (run_time) 
@@ -210,29 +211,42 @@ class MineBlock(Event):
                 return
 
         # Traverse the longest chain and find all transactions that've been spent
-        longest_chain = current.get_longest_chain()
+        longest_chain = current.find_longest_chain()
         last_blck = longest_chain[0] # Stores the id of the block which is being mined in the blockchain of that node
+
+        print("LONGEST CHAIN FOUND")
+        print(longest_chain)
 
         # Get TXn to be included in the block (all the maximum limits and other conditions are handled by the node)
         txn_to_include = current.get_TXN_to_include()
+
+        print("TRANSACTIONS TO INCLUDE")
+        print(txn_to_include)
 
         # To terminate the block mining process if the node has no TXNs to include in the block
         if not txn_to_include:
             return
         
         # Include the mining fee TXN in the block
-        miningTXN = Transaction(simulator.mining_txn_id, current.id, current.id, 50, len(N.nodes))
-        txn_to_include+=miningTXN
+        miningTXN = Transaction(simulator.mining_txn_id, current.pid, current.pid, 50, len(N.nodes))
+        txn_to_include.append(miningTXN.id)
+
+        print("APPENDING MINING FEE TXN")
+        print(txn_to_include)
     
         # Generate a new block
-        new_blk = Block(current.pid,last_blck, txn_to_include,  self.run_time, len(longest_chain))
+        new_blk = Block(current.pid,last_blck, self.run_time, txn_to_include,  self.run_time, len(longest_chain))
         simulator.block_id += 1
+        simulator.mining_txn_id-=1
+
+        print("NEW BLOCK GENERATED")
+        new_blk.print_block()
 
         # Add the block to my chain
         current.add_block(new_blk)
 
         # Update the mining reward in the creator's block
-        current.coins += 50
+        current.BTC += 50
 
         # Forwarding the block to its peers
         for neighbor in N.G.neighbors(self.node_id):

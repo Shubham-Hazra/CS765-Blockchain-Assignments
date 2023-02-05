@@ -142,13 +142,13 @@ class Network:
             else:
                 self.attrb[i]['hashing_power'] = hashing_power*10
 
-# Testing the class
-N = Network(15)
-print("CPU power of first node" , N.G.nodes[0]['cpu'])
-N.show_graph()
-for edge in N.G.edges:
-    print("Latency between the nodes of the first edge (in seconds): ", N.get_latency(edge[0],edge[1],17))
-    break
+# # Testing the class
+# N = Network(15)
+# print("CPU power of first node" , N.G.nodes[0]['cpu'])
+# N.show_graph()
+# for edge in N.G.edges:
+#     print("Latency between the nodes of the first edge (in seconds): ", N.get_latency(edge[0],edge[1],17))
+#     break
 
 
 
