@@ -2,6 +2,8 @@ import collections
 import random
 from queue import Queue
 
+import matplotlib.pyplot as plt
+import networkx as nx
 from treelib import Tree
 
 from block import *
@@ -109,22 +111,33 @@ class Node:
 #########################################################################################################################################
     # Following function will be used at the end to print the blockchain (tree form) of the node
     def print_blockchain(self):
-        added = set()
-        tree = Tree()
         dict_ = self.blockchain_tree.copy()
-        while dict_:  # while dict_ is not empty
-            for key, value in dict_.items():
-                if value['parent'] in added:
-                    tree.create_node(key, key, parent=value['parent'])
-                    added.add(key)
-                    dict_.pop(key)
-                    break
-                elif value['parent'] is None:
-                    tree.create_node(key, key)
-                    added.add(key)
-                    dict_.pop(key)
-                    break
-        tree.show()
+        # added = set()
+        # tree = Tree()
+        # while dict_:  # while dict_ is not empty
+        #     for key, value in dict_.items():
+        #         if value['parent'] in added:
+        #             tree.create_node(key, key, parent=value['parent'])
+        #             added.add(key)
+        #             dict_.pop(key)
+        #             break
+        #         elif value['parent'] is None:
+        #             tree.create_node(key, key)
+        #             added.add(key)
+        #             dict_.pop(key)
+        #             break
+        # tree.show()
+        G = nx.Graph()
+        for key, value in dict_.items():
+            if value['parent'] is not None:
+                G.add_node(key)
+                G.add_edge(key, value['parent'])
+            else:
+                G.add_node(key)
+
+        plt.figure(figsize=(10, 10))
+        nx.draw(G, with_labels=True)
+        plt.show()
 #############################################################################################################################################
 
 # Testing the code
