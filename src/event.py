@@ -156,7 +156,7 @@ class ForwardBlock(Event):
         # Add the block to the blockchain of the node
         current.blocks[new_block.id] = {"parent": prev_blk_id}
         # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
-        current.blocksReceiveTime.append(new_block.create_time)
+        current.blocksReceiveTime.append(new_block.run_time) # To store the execution time of the event so that we can ensure no bok has arrived between t_k and T_k
 
 
         # Forwarding the block to its peers
@@ -192,8 +192,10 @@ class MineBlock(Event):
     def addEvent(self, N, simulator):
         current = N.nodes[self.node_id]
 
-        for start_time_prev in current.blocksReceiveTime:
-            if start_time_prev > self.run_time: # WHEN THE BLOCK IS "TRIED" TO BE MINED (t_k + T_k or self.run_time), check whether ANY OTHER BLOCK ARRIVED
+        # The block generation event was created at t_k (create_time) and scheduled for t_k + T_k (run_time) 
+        # if there is some block in the list of blocks seen by the node such that it reached that node at timet,t_k < t < t_k + T_k then reject this block generation event
+        for block_rcv_time in current.blocksReceiveTime: 
+            if block_rcv_time > self.create_time and block_rcv_time < self.run_time:
                 return
         
 
