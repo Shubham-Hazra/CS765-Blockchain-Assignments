@@ -1,13 +1,17 @@
-from network import Network
-from queue import PriorityQueue
-from event import Event, CreateTXN, ReceiveTXN 
 import random
+from queue import PriorityQueue
+
+from event import CreateTXN, Event, ReceiveTXN
+from network import Network
+
 
 class Simulator:
-    def __init__(self, n, z, tm, bm, max_steps):
+    def __init__(self, n, z0,z1, Ttx, I, max_steps):
         self.N = Network(n)
-        self.tm = tm # Mean transaction interarrival time
-        self.bm = bm # Mean block interarrival time
+        self.z0 = z0 # Percentage of slow nodes
+        self.z1 = z1 # Percentage of low CPU nodes
+        self.Ttx = Ttx # Mean transaction interarrival time
+        self.I = I # Mean block interarrival time
         self.txn_id = 0
         self.events = PriorityQueue()
         self.initialize_events()
@@ -22,9 +26,10 @@ class Simulator:
             # print(self.events.get())
 
     def transaction_delay(self):
-        return random.expovariate(1 / self.tm)
+        return random.expovariate(1 / self.Ttx)
+
     def block_delay(self):
-        return random.expovariate(1 / self.bm)
+        return random.expovariate(1 / self.I)
 
     def run(self, max_steps = 10000):
         step_count = 0
@@ -40,5 +45,5 @@ class Simulator:
 
 
 # Test
-S = Simulator(15, 10, 10, 10, 10000)
+S = Simulator(15, 10,10, 10, 10, 10000)
 # S.run(10)

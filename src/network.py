@@ -20,10 +20,11 @@ class Network:
 
         self.calc_cpu(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
         self.calc_speed(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
+        self.set_hashing_power(10) # Sets the hashing power of the nodes ### IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
         self.set_latency_attrb() # Sets the latency of the network
         self.set_attrb()
 
-        self.nodes = [Node(i, self.attrb[i], 0, 100) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
+        self.nodes = [Node(i, self.attrb[i],  100) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
         # By default everyone has 100 BTC at the start
 
     def create_graph(self):
@@ -125,14 +126,21 @@ class Network:
             d = 96/(self.G[node1][node2]['c']*1000) + np.random.exponential()  # Queueing delay at node 1
             self.G[node1][node2]['d'] = d
 
-    def calc_latency(self, node1, node2, packet_size):
+    def calc_latency(self, node1, node2, packet_size):# Returns the latency between two nodes (packet_size is the size of the message in Mbs)
         return self.G[node1][node2]['l'] + packet_size/self.G[node1][node2]['c'] + self.G[node1][node2]['d']
         
         
     def get_latency(self, node1, node2, m): # Returns the latency between two nodes (m is the size of the message in Mbs)
         return self.G[node1][node2]['l'] + self.G[node1][node2]['d'] + m/self.G[node1][node2]['c']
 
-
+    def set_hashing_power(self,z):
+        z = int(z*self.num_nodes/100.0)
+        hashing_power = 1/(z + 10*(self.num_nodes - z))
+        for i in range(self.num_nodes):
+            if self.attrb[i]['cpu'] == 'low':
+                self.attrb[i]['hashing_power'] = hashing_power
+            else:
+                self.attrb[i]['hashing_power'] = hashing_power*10
 
 # Testing the class
 # N = Network(15)

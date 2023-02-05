@@ -1,8 +1,10 @@
-from transaction import Transaction
-from block import Block
-from network import Network
 import random
 import time
+
+from block import Block
+from network import Network
+from transaction import Transaction
+
 
 class Event(object):
 
@@ -72,7 +74,7 @@ class CreateTXN(Event):
 
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
-            t = N.calc_latency(self.node_id, neighbor, 8000) # TXN is 8000 bits
+            t = N.calc_latency(self.node_id, neighbor, .008) # TXN is 8000 bits = 1KB = .008MB
 
             simulator.events.put(ReceiveTXN(
                 new_txn,
@@ -111,7 +113,7 @@ class ReceiveTXN(Event):
 
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
-            t = N.calc_latency(self.node_id, neighbor, 8000) # TXN is 8000 bits
+            t = N.calc_latency(self.node_id, neighbor, .008) # TXN is 8000 bits = 1KB = .008MB
 
             simulator.events.put(ReceiveTXN(
                 self.transaction,
@@ -150,14 +152,15 @@ class ForwardBlock(Event):
             self.block.creator_id,
             prev_blk_id,
             self.block.created_at,
-            len(self.block) + 1
+            len(self.block) + 1,
+            self.block.transactions
         )
 
         # Add the block to the blockchain of the node
         current.blocks[new_block.id] = {"parent": prev_blk_id}
         # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
-        current.blocksReceiveTime.append(new_block.run_time) # To store the execution time of the event so that we can ensure no bok has arrived between t_k and T_k
 
+        current.blocksReceiveTime.append(new_block.run_time) # To store the execution time of the event so that we can ensure no bok has arrived between t_k and T_k
 
         # Forwarding the block to its peers
         for neighbor in N.G.neighbors(self.node_id):

@@ -32,4 +32,7 @@ a["P_3"] = '\033[92m'
 a["P_4"] = '\033[91m'
 a["END"] = '\033[0m'
 for i in range(5, num_peers):
-a["P_"+str(i)] = a["P_"+str(i % 5)]
+    a["P_"+str(i)] = a["P_"+str(i % 5)]
+
+CURRENT_TIME = 0 # Current time of the simulation
+I = 600 # Average inter arrival time between two consecutive blocks
