@@ -1,7 +1,7 @@
 import random
 from queue import PriorityQueue
 
-from event import CreateTXN, Event, ReceiveTXN, MineBlock
+from event import CreateTXN, Event, MineBlock, ReceiveTXN
 from network import Network
 
 
@@ -18,6 +18,7 @@ class Simulator:
         self.events = PriorityQueue()
         self.initialize_events()
         self.run(max_steps)
+        self.print_blockchains()
 
     def initialize_events(self):
         print(len(self.N.nodes))
@@ -25,11 +26,13 @@ class Simulator:
             self.events.put(CreateTXN(
                 node.pid, node.pid, 0, self.transaction_delay()
             ))
+        nodes_to_mine = random.sample(self.N.nodes,3)
+         
+        for node in nodes_to_mine:
             # Randomly choosing a node and starting the mining process
             self.events.put(MineBlock(
             node.pid, node.pid, 0, node.get_PoW_delay()
             ))
-            # print(self.events.get())
 
     def transaction_delay(self):
         return random.expovariate(1 / self.Ttx)
@@ -41,6 +44,8 @@ class Simulator:
     def run(self, max_steps = 10000):
         step_count = 0
         while step_count <= max_steps:
+            
+            ############################################################################
             if not self.events.empty():
                 # Executing other events
                 current_event = self.events.get()
@@ -51,7 +56,22 @@ class Simulator:
             current_event.addEvent(self.N, self)
             step_count+=1
 
+    def print_blockchains(self):
+        for node in self.N.nodes[:6]:
+            node.print_blockchain()
+
 
 # Test
-S = Simulator(15, 10,10, 1000, 6, 1000)
+S = Simulator(100, 10, 30, 10000, 6, 100000)
 # S.run(10)
+
+# node = random.sample(self.N.nodes,1)[0]
+# if random.random() > 0.8:
+#     self.events.put(CreateTXN(
+#     node.pid, node.pid, 0, self.transaction_delay()
+#     ))
+# else:
+#     # Randomly choosing a node and starting the mining process
+#     self.events.put(MineBlock(
+#     node.pid, node.pid, 0, node.get_PoW_delay()
+#     ))

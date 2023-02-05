@@ -21,7 +21,7 @@ class Node:
         self.peers = {}  # Storing the pointer for function to put events in Queues of peers
         self.BTC = BTC  # Initial BTC balance of the peer
         self.blockchain_tree = {"Block_0": {"parent": None}} # Blockchain tree of the peer
-        self.blockchain = {"Block_0":Block(None,None,None,None,0,0)}  # Blockchain of the peer - stores the block objects, Initially the genesis block is added
+        self.blockchain = {"Block_0":Block(None,None,None,None,0,0,0)}  # Blockchain of the peer - stores the block objects, Initially the genesis block is added
         self.longest_chain = ["Block_0"] # Longest chain of the peer as a list of block ids
         self.max_len = 0  # Length of the longest chain
         self.txn_list = []  # List of transactions that the peer has seen but not included in any block
@@ -44,10 +44,12 @@ class Node:
         if self.validate_block(block): # Checking if the block is valid
             self.blockchain[block.block_id] = block # Adding the block to the blockchain
             self.blockchain_tree[block.block_id] = {"parent": block.previous_id} # Adding the block to the blockchain tree
+            # self.blockchain_tree[block.block_id] = {"parent": self.longest_chain[-1]}
+            # self.blockchain[block.block_id].length = self.blockchain[self.longest_chain[-1]].length + 1
             self.blockchain[block.block_id].length = self.blockchain[block.previous_id].length + 1 # Updating the length of the block
             self.included_txn.extend(block.transactions) # Adding the transactions to the list of included transactions
             self.remove_common_TXN(block) # Removing the transactions from the list of transactions that the peer has seen but not included in any block
-            if self.blockchain[block.block_id].length > self.max_len: # Checking if the block is the longest block
+            if self.blockchain[block.block_id].length >= self.max_len: # Checking if the block is the longest block
                 self.max_len = self.blockchain[block.block_id].length # Updating the length of the longest chain
                 self.longest_chain = self.find_longest_chain() # Updating the longest chain
             print(f"{self.pid} says {block.block_id} is valid and added to its blockchain")
@@ -64,10 +66,14 @@ class Node:
     # Function to find the longest chain in the blockchain
     def find_longest_chain(self):
         longest_chain = []
-        max_block_id = None
+        max_block_id = "Block_0"
+        max_length = 0
         for block_id,block in self.blockchain.items():
-            if block.length == self.max_len: # Finding the block with the maximum length
+            if block.length > max_length: # Finding the block with the maximum length
                 max_block_id = block_id
+            elif block.length == max_length:
+                if int(block.block_id[6:]) < int(self.blockchain[max_block_id].block_id[6:]):
+                    max_block_id = block.block_id
         while max_block_id != None: # Traversing backwards till the genesis block
             longest_chain.append(max_block_id)
             max_block_id = self.blockchain_tree[max_block_id]["parent"]
@@ -75,10 +81,10 @@ class Node:
 
     # Function to check if the block is valid
     # Assuming a global transaction list and a global balance list
+    # SIMULATOR MAY GENERATE BLOCKS WITH SAME TXNs, BUT RECEIVING NODE WILL NOT VALIDATE
     def validate_block(self, block):
-        # if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
-        #     return False
-        return True
+        if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
+            return False
         for txn in block.transactions:
             if txn in self.included_txn: # Checking if the transaction is already included in the blockchain
                 print(self.pid,"says that",txn,"is there in",self.included_txn)
@@ -100,8 +106,9 @@ class Node:
 
     # Get TXN from the TXN pool which are not yet included in any block that the node has heard
     def get_TXN_to_include(self):
-        upper_limit = max(len(self.txn_list),998) # Upper limit of the number of transactions that can be included in the block
-        num_txn_to_mine = random.randint(1,min(upper_limit,len(self.txn_list))) # Number of transactions to be included in the block
+        upper_limit = max(len(self.txn_list),999) # Upper limit of the number of transactions that can be included in the block
+        upper_limit = min(upper_limit,len(self.txn_list)) # Actual upper limit is minimum of length and 999
+        num_txn_to_mine = random.randint(int(upper_limit/2),upper_limit) # Number of transactions to be included in the block
         txn_to_mine = random.sample(self.txn_list,num_txn_to_mine) # Transactions to be included in the block
         return txn_to_mine
 
@@ -143,9 +150,9 @@ class Node:
 # Testing the code
 if __name__ == "__main__":
     N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100)
-    N.add_block(Block(1, "Block_0", 0, ["txn_1", "txn_2"]))
-    N.add_block(Block(2, "Block_0", 1, ["txn_3", "txn_4"]))
-    N.add_block(Block(3, "Block_1", 2, ["txn_5", "txn_6"]))
+    N.add_block(Block(1, "Block_0", 0, ["txn_1", "txn_2"],2))
+    N.add_block(Block(2, "Block_0", 1, ["txn_3", "txn_4"],2))
+    N.add_block(Block(3, "Block_1", 2, ["txn_5", "txn_6"],2))
     print(N.blockchain_tree)
     print(N.find_longest_chain())
     print(f"Maximum length: {N.max_len}")
@@ -153,15 +160,5 @@ if __name__ == "__main__":
     N.add_txn(N.included_txn[2]) 
     print(N.txn_list)
     N.add_txn("txn_3")
-# N.print_blockchain() # Function not working have to debug
 
 
-# self.semaphore = threading.Semaphore(0)
-# self.queue = Queue() # Queue of events put by the peers or the node itself
-# self.event_buffer = collections.defaultdict(set) # Event buffer - which receives events received and forwards it to its peers
-
-# Initialize the blockchain
-#  self.blockchain = BlockChain(gen_block, self.pid)
-# self.block_timer = None
-# # the random no denotes the computation power of the peer. lower the random no, higher the comp. power.
-# self.block_gen_mean = Parameters.block_gen_mean * (random.uniform(0.5, 1.0))

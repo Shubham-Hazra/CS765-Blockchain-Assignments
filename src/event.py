@@ -13,7 +13,7 @@ class Event(object):
         self.node_id = node_id
         self.creator_id = creator_id
         self.create_time = create_time
-        self.run_time = run_time
+        self.run_time = run_time 
 
     def __lt__(self, non_self):
         # To define a < operator to put into the Priority Queue
@@ -78,7 +78,7 @@ class CreateTXN(Event):
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
             t = N.calc_latency(self.node_id, neighbor, .008) # TXN is 8000 bits = 1KB = .008MB
-
+            new_txn.received[neighbor] = 1
             simulator.events.put(ReceiveTXN(
                 new_txn,
                 neighbor,
@@ -106,13 +106,6 @@ class ReceiveTXN(Event):
         # Create object of the current node
         current = N.nodes[self.node_id]
 
-        # Check the boolean array whether the node has already seen this txn
-        if self.transaction.received[self.node_id] == 1: # Already seen this TXN
-            print(self.node_id, "has already seen this TXN")
-            return
-        else:
-            self.transaction.received[self.node_id] = 1
-
         # For debugging
         print("TXN Fwd:", self.node_id, "heard that ", end = " ")
         self.transaction.print_transaction()
@@ -122,15 +115,16 @@ class ReceiveTXN(Event):
 
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
-            t = N.calc_latency(self.node_id, neighbor, .008) # TXN is 8000 bits = 1KB = .008MB
-
-            simulator.events.put(ReceiveTXN(
-                self.transaction,
-                neighbor,
-                self.node_id,
-                self.run_time,
-                self.run_time + t
-            ))
+            if self.transaction.received[neighbor] == 0:
+                t = N.calc_latency(self.node_id, neighbor, .008) # TXN is 8000 bits = 1KB = .008MB
+                self.transaction.received[neighbor] = 1
+                simulator.events.put(ReceiveTXN(
+                    self.transaction,
+                    neighbor,
+                    self.node_id,
+                    self.run_time,
+                    self.run_time + t
+                ))
 
 class ForwardBlock(Event):
     def __init__(self, block, node_id, creator_id, creat_time, run_time):
@@ -150,16 +144,17 @@ class ForwardBlock(Event):
                 print("BLOCK ERROR on",self.node_id,": Previous Block has not arrived")
             else: # If previous block has arrived
                 # # Make a new block to add to the node's tree
-                # new_block = Block(
-                #     self.block.creator_id,
-                #     prev_blk_id.block_id,
-                #     self.block.created_at,
-                #     self.block.transactions,
-                #     self.block.block_id[6:]
-                # )
-                print("previous ID of the block is",self.block.previous_id)
+                new_block = Block(
+                    self.block.creator_id,
+                    prev_blk_id.block_id,
+                    self.block.created_at,
+                    self.block.transactions,
+                    N.num_nodes,
+                    self.block.block_id[6:]
+                )
+                print("previous ID of the block is",new_block.previous_id)
                 # Add the block to the blockchain of the node and removes common TXNs from the TXN pool of the node
-                current.add_block(self.block)
+                current.add_block(new_block)
         else:
             print("ONLY FORWARDING BLOCK on",self.node_id,":",self.node_id,"has already added",self.block.block_id,"into his blockchain")
 
@@ -170,10 +165,10 @@ class ForwardBlock(Event):
         for neighbor in N.G.neighbors(self.node_id):
 
             # Exclude the crator of the block
-            if neighbor != self.block.creator_id:
+            if neighbor != self.block.creator_id and self.block.received[neighbor] == 0:
 
-                t = N.calc_latency(self.node_id, neighbor, 8000*len(self.block.transactions)) # To calculate the latency of the block based on the number of transactions in the block
-
+                t = N.calc_latency(self.node_id, neighbor, self.block.get_size()) # To calculate the latency of the block based on the number of transactions in the block
+                self.block.received[neighbor] = 1 # That the node has seen the block
                 simulator.events.put(ForwardBlock(
                     self.block,
                     neighbor,
@@ -211,8 +206,7 @@ class MineBlock(Event):
                 return
 
         # Traverse the longest chain and find all transactions that've been spent
-        longest_chain = current.find_longest_chain()
-        last_blck = longest_chain[0] # Stores the id of the block which is being mined in the blockchain of that node
+        last_blck = current.longest_chain[-1]# Stores the id of the block which is being mined in the blockchain of that node
 
         # print("LONGEST CHAIN FOUND")
         # print(longest_chain)
@@ -234,14 +228,15 @@ class MineBlock(Event):
             return
         
         # Include the mining fee TXN in the block
-        miningTXN = Transaction(simulator.mining_txn_id, current.pid, current.pid, 50, len(N.nodes))
+        miningTXN = Transaction(simulator.mining_txn_id, current.pid, current.pid, 50, N.num_nodes)
         txn_to_include.append(miningTXN.id)
 
         # print("APPENDING MINING FEE TXN")
         # print(txn_to_include)
     
         # Generate a new block
-        new_blk = Block(current.pid,last_blck, self.run_time, txn_to_include,  simulator.block_id, len(longest_chain))
+        new_blk = Block(current.pid,last_blck, self.run_time, txn_to_include,N.num_nodes, simulator.block_id, len(current.longest_chain))
+        print("BLOCK ID:",new_blk.block_id,", PREVIOUS POINTER:",new_blk.previous_id)
         simulator.block_id += 1
         simulator.mining_txn_id-=1
 
@@ -260,8 +255,8 @@ class MineBlock(Event):
             # Exclude the crator of the block
             if neighbor != new_blk.creator_id:
 
-                t = N.calc_latency(self.node_id, neighbor, 8000*len(new_blk.transactions)) # To calculate the latency of the block based on the number of transactions in the block
-
+                t = N.calc_latency(self.node_id, neighbor, new_blk.get_size()) # To calculate the latency of the block based on the number of transactions in the block
+                new_blk.received[neighbor] = 1 # That the node has seen the block
                 simulator.events.put(ForwardBlock(
                     new_blk,
                     neighbor,
@@ -269,6 +264,7 @@ class MineBlock(Event):
                     self.run_time,
                     self.run_time + t
                 ))
+                
 
 
 
