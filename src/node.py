@@ -75,6 +75,7 @@ class Node:
     # Assuming a global transaction list and a global balance list
     def validate_block(self, block):
         if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
+            
             return False
         for txn in block.transactions:
             if txn in self.included_txn: # Checking if the transaction is already included in the blockchain

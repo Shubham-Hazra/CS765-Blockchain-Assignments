@@ -140,28 +140,25 @@ class ForwardBlock(Event):
         self.block = block
     
     def addEvent(self, N, simulator): 
+        print("FORWARDING BLOCK")
         current = N.nodes[self.node_id]
 
         # Do nothing if the block has already been seen
-        if self.block.id in current.blocks: # MAKE A DICTIONARY OF BLOCKS SEEN BY THE NODE
+        if self.block.block_id in current.blockchain.keys(): # MAKE A DICTIONARY OF BLOCKS SEEN BY THE NODE
             return
 
         # Return the ID of the previous block
-        prev_blk_id = current.blocks.get(self.block.prev_block_id)
+        prev_blk_id = current.blockchain.get(self.block.previous_id)
         if prev_blk_id is None:
             return
-        prev_blk_id = prev_blk_id["parent"]
-
-        # Remove common transactions from the node's TXN pool which match with the TXNs in the block
-        current.remove_common_TXN(self.block.transactions)
 
         # Make a new block to add to the node's tree
         new_block = Block(
-            self.block.id,
+            self.block.block_id,
             self.block.creator_id,
             prev_blk_id,
             self.block.created_at,
-            len(self.block) + 1,
+            self.block.length + 1,
             self.block.transactions
         )
 
