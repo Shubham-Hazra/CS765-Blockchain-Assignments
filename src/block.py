@@ -1,10 +1,7 @@
 # Class for block
 class Block:
-    _id = 0 # Global block ID
     def __init__(self,creator_id, previous_block_id,created_at, transactions,block_id = -1,length = 0):
-        if block_id != -1: # If the block is not the genesis block
-            Block._id += 1  # Increment the global block ID
-        self.block_id = f"Block_{Block._id}" # Set the block ID to the global block ID (Unique ID for each block)(Block ID is set to 0 if the block is the genesis block)
+        self.block_id = f"Block_{block_id}" # Set the block ID to the global block ID (Unique ID for each block)(Block ID is set to 0 if the block is the genesis block)
         self.creator_id = creator_id # Set the ID of the creator of the block
         self.previous_id = previous_block_id # Set the ID of the previous block
         self.created_at = created_at # Set the time of creation of the block

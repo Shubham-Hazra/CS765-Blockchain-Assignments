@@ -13,7 +13,7 @@ class Simulator:
         self.Ttx = Ttx # Mean transaction interarrival time
         self.I = I # Mean block interarrival time
         self.txn_id = 0
-        self.block_id = 0
+        self.block_id = 1
         self.mining_txn_id = -1
         self.events = PriorityQueue()
         self.initialize_events()
@@ -22,11 +22,12 @@ class Simulator:
     def initialize_events(self):
         print(len(self.N.nodes))
         for node in self.N.nodes:
-            self.events.put(MineBlock(
-                node.pid, node.pid, 0, node.get_PoW_delay()
-            ))
             self.events.put(CreateTXN(
                 node.pid, node.pid, 0, self.transaction_delay()
+            ))
+            # Randomly choosing a node and starting the mining process
+            self.events.put(MineBlock(
+            node.pid, node.pid, 0, node.get_PoW_delay()
             ))
             # print(self.events.get())
 
@@ -41,6 +42,7 @@ class Simulator:
         step_count = 0
         while step_count <= max_steps:
             if not self.events.empty():
+                # Executing other events
                 current_event = self.events.get()
             else:
                 print("Simulation Complete!!")
@@ -51,5 +53,5 @@ class Simulator:
 
 
 # Test
-S = Simulator(15, 10,10, 10, 10, 10000)
+S = Simulator(15, 10,10, 1000, 6, 1000)
 # S.run(10)

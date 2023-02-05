@@ -152,15 +152,4 @@ class Network:
 
 
 
- # def start_nodes(self): # Start the thread for each Node
-    #     for i in self.nodes:
-    #         i.start()
-
-    # def connect_peers(self):
-    #     for i in range(self.num_nodes):
-    #         peers = self.G.neighbors(i)
-    #         for j in peers:
-    #             self.nodes[i].add_peer_pointer(self.nodes[j].pid, self.nodes[j].receive_event)
-
-
 

@@ -74,11 +74,12 @@ class Node:
     # Function to check if the block is valid
     # Assuming a global transaction list and a global balance list
     def validate_block(self, block):
-        if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
-            
-            return False
+        # if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
+        #     return False
+        return True
         for txn in block.transactions:
             if txn in self.included_txn: # Checking if the transaction is already included in the blockchain
+                print(self.pid,"says that",txn,"is there in",self.included_txn)
                 return False
             else:
                 return True # Assuming that a block is broadcasted only if the balances are non-negative and hence the block is valid

@@ -140,30 +140,29 @@ class ForwardBlock(Event):
         self.block = block
     
     def addEvent(self, N, simulator): 
-        print("FORWARDING BLOCK")
         current = N.nodes[self.node_id]
 
         # Do nothing if the block has already been seen
-        if self.block.block_id in current.blockchain.keys(): # MAKE A DICTIONARY OF BLOCKS SEEN BY THE NODE
-            return
+        if not self.block.block_id in current.blockchain.keys(): 
+            # Return the ID of the previous block
+            prev_blk_id = current.blockchain.get(self.block.previous_id)
+            if prev_blk_id is None:
+                print("BLOCK ERROR on",self.node_id,": Previous Block has not arrived")
+            else: # If previous block has arrived
+                # # Make a new block to add to the node's tree
+                # new_block = Block(
+                #     self.block.creator_id,
+                #     prev_blk_id.block_id,
+                #     self.block.created_at,
+                #     self.block.transactions,
+                #     self.block.block_id[6:]
+                # )
+                print("previous ID of the block is",self.block.previous_id)
+                # Add the block to the blockchain of the node and removes common TXNs from the TXN pool of the node
+                current.add_block(self.block)
+        else:
+            print("ONLY FORWARDING BLOCK on",self.node_id,":",self.node_id,"has already added",self.block.block_id,"into his blockchain")
 
-        # Return the ID of the previous block
-        prev_blk_id = current.blockchain.get(self.block.previous_id)
-        if prev_blk_id is None:
-            return
-
-        # Make a new block to add to the node's tree
-        new_block = Block(
-            self.block.block_id,
-            self.block.creator_id,
-            prev_blk_id,
-            self.block.created_at,
-            self.block.length + 1,
-            self.block.transactions
-        )
-
-        # Add the block to the blockchain of the node and removes common TXNs from the TXN pool of the node
-        current.add_block(self.block)
         # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
         current.blocksReceiveTime.append(self.run_time) # To store the execution time of the event so that we can ensure no block has arrived between t_k and T_k
 
@@ -185,12 +184,16 @@ class ForwardBlock(Event):
         #######################################################################################################################################
         # After the block receives the Block from its peers, The node starts the PoW again - See last paragraph of the Problem statement 7th statement
         #######################################################################################################################################
+        print("STARTING POW on",self.node_id)
+        PoW_delay = current.get_PoW_delay()
+        print("PoW delay for", self.node_id,"is",PoW_delay)
         simulator.events.put(MineBlock( ################ THIS CORRESPONDS TO TIME t_k - the TIME FROM WHICH THE NODE WAITS TO CHECK WHETHER ANY OTHER BLCK RRIVES OR NOT (for T_k time)
             self.node_id,
             self.node_id,
             self.run_time,
-            self.run_time + current.get_PoW_delay() # Updated block_delay() as described in simulating PoW section
+            self.run_time + PoW_delay # Updated block_delay() as described in simulating PoW section
         ))
+        
 
 class MineBlock(Event):
     def __init__(self, node_id, creator_id, create_time, run_time):
@@ -198,45 +201,51 @@ class MineBlock(Event):
             node_id, creator_id, create_time, run_time)
         
     def addEvent(self, N, simulator):
-        print("BLOCK MINED")
         current = N.nodes[self.node_id]
 
         # The block generation event was created at t_k (create_time) and scheduled for t_k + T_k (run_time) 
         # if there is some block in the list of blocks seen by the node such that it reached that node at timet,t_k < t < t_k + T_k then reject this block generation event
         for block_rcv_time in current.blocksReceiveTime: 
             if block_rcv_time > self.create_time and block_rcv_time < self.run_time:
+                print("MINING UNSUCCESSFUL: PoW on",self.node_id,"Unsuccessful :(, some other node has created the block")
                 return
 
         # Traverse the longest chain and find all transactions that've been spent
         longest_chain = current.find_longest_chain()
         last_blck = longest_chain[0] # Stores the id of the block which is being mined in the blockchain of that node
 
-        print("LONGEST CHAIN FOUND")
-        print(longest_chain)
+        # print("LONGEST CHAIN FOUND")
+        # print(longest_chain)
 
         # Get TXn to be included in the block (all the maximum limits and other conditions are handled by the node)
+        # To terminate the block mining process if the node has no TXNs to include in the block
+        if not current.txn_list:
+            print("MINING UNSUCCESSFUL: No TXN to include")
+            return 
+
         txn_to_include = current.get_TXN_to_include()
 
-        print("TRANSACTIONS TO INCLUDE")
-        print(txn_to_include)
+        # print("TRANSACTIONS TO INCLUDE")
+        # print(txn_to_include)
 
-        # To terminate the block mining process if the node has no TXNs to include in the block
+        # To terminate the block mining process if the node has no TXNs to include in the block        
         if not txn_to_include:
+            print("MINING UNSUCCESSFUL: No TXN to include")
             return
         
         # Include the mining fee TXN in the block
         miningTXN = Transaction(simulator.mining_txn_id, current.pid, current.pid, 50, len(N.nodes))
         txn_to_include.append(miningTXN.id)
 
-        print("APPENDING MINING FEE TXN")
-        print(txn_to_include)
+        # print("APPENDING MINING FEE TXN")
+        # print(txn_to_include)
     
         # Generate a new block
-        new_blk = Block(current.pid,last_blck, self.run_time, txn_to_include,  self.run_time, len(longest_chain))
+        new_blk = Block(current.pid,last_blck, self.run_time, txn_to_include,  simulator.block_id, len(longest_chain))
         simulator.block_id += 1
         simulator.mining_txn_id-=1
 
-        print("NEW BLOCK GENERATED")
+        print("MINING SUCCESSFUL: NEW BLOCK GENERATED")
         new_blk.print_block()
 
         # Add the block to my chain

@@ -1,6 +1,6 @@
 num_peers = 50    # total number of peers
-z0 = 0.1          # Slow node percentage
-z1 = 0.1          # Low CPU node percentage
+z0 = 10         # Slow node percentage
+z1 = 10          # Low CPU node percentage
 start_balance = 100
 
 # Transaction parameters
@@ -35,4 +35,4 @@ for i in range(5, num_peers):
     a["P_"+str(i)] = a["P_"+str(i % 5)]
 
 CURRENT_TIME = 0 # Current time of the simulation
-I = 600 # Average inter arrival time between two consecutive blocks
+I = 6 # Average inter arrival time between two consecutive blocks
