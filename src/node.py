@@ -26,6 +26,7 @@ class Node:
         self.max_len = 0  # Length of the longest chain
         self.txn_list = []  # List of transactions that the peer has seen but not included in any block
         self.included_txn = []  # List of transactions that the peer has included in a block
+        self.block_buffer = []  # List of blocks that the peer has heard but not added to its blockchain because parent block is not yet added
         self.blocksReceiveTime = []
     # receives the pointer of the neighbor's enqueue function from the Network class and puts it in his list -
     # so that it can communicate anything by putting events in the neighbour's queue
@@ -41,6 +42,15 @@ class Node:
      
     # Function to add a block to the blockchain
     def add_block(self, block):
+        for i in range(len(self.block_buffer)):
+            self.add_block(self.block_buffer[i])
+        if block.previous_id in self.blockchain.keys(): # Checking if the parent block is already in the blockchain
+            self.add_block_to_chain(block)
+        elif block.previous_id not in self.block_buffer:
+            self.block_buffer.append(block) # Adding the block to the block buffer
+        
+
+    def add_block_to_chain(self, block):
         if self.validate_block(block): # Checking if the block is valid
             self.blockchain[block.block_id] = block # Adding the block to the blockchain
             self.blockchain_tree[block.block_id] = {"parent": block.previous_id} # Adding the block to the blockchain tree
@@ -57,11 +67,20 @@ class Node:
         else:
             print(f"{self.pid} says {block.block_id} is invalid")
             return False
-
+    
     def remove_common_TXN(self, block): # Removing the transactions that are included in the block from the list of transactions that the peer has seen but not included in any block
         for txn in block.transactions:
             if txn in self.txn_list:
                 self.txn_list.remove(txn)
+
+    def find_parent_txns(self,block):
+        txns = []
+        parent = block.previous_id
+        while parent != "Block_0":
+            if parent in self.blockchain.keys():
+                txns.extend(self.blockchain[parent].transactions)
+                parent = self.blockchain_tree[parent]["parent"]
+        return txns
 
     # Function to find the longest chain in the blockchain
     def find_longest_chain(self):
@@ -86,9 +105,10 @@ class Node:
         return True
         if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
             return False
+        parent_txns = self.find_parent_txns(block)
         for txn in block.transactions:
-            if txn in self.included_txn: # Checking if the transaction is already included in the blockchain
-                print(self.pid,"says that",txn,"is there in",self.included_txn)
+            if txn in parent_txns: # Checking if the transaction is already included in the blockchain
+                print(self.pid,"says that",txn,"is already there in the chain")
                 return False
             else:
                 return True # Assuming that a block is broadcasted only if the balances are non-negative and hence the block is valid

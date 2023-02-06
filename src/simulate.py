@@ -65,12 +65,12 @@ class Simulator:
             step_count+=1
 
     def print_blockchains(self):
-        for node in self.N.nodes[:6]:
+        for node in self.N.nodes:
             node.print_blockchain()
 
 
 # Test
-S = Simulator(40, 10, 80, 1000000, 6, 10000)
+S = Simulator(40, 10, 30, 100000, 6, 100000)
 # S.run(10)
 
 # node = random.sample(self.N.nodes,1)[0]
