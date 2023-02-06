@@ -113,7 +113,7 @@ class Node:
         return txn_to_mine
 
     def get_PoW_delay(self):
-        return I/self.hashing_power + random.expovariate(1) # Mining time of the block
+        return random.expovariate(self.hashing_power/I) # Mining time of the block
 
 #########################################################################################################################################
     # Following function will be used at the end to print the blockchain (tree form) of the node

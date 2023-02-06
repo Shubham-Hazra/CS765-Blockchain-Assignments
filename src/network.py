@@ -123,7 +123,7 @@ class Network:
                 self.G[node1][node2]['c'] = 5 # Link speed is 5Mbps if either of the nodes has low speed
             else:
                 self.G[node1][node2]['c'] = 100 # Link speed is 100Mbps if both of the nodes have high speed
-            d = 96/(self.G[node1][node2]['c']*1000) + np.random.exponential()  # Queueing delay at node 1
+            d = random.expovariate((self.G[node1][node2]['c']*1000)/96) # Queueing delay at node 1
             self.G[node1][node2]['d'] = d
 
     def calc_latency(self, node1, node2, packet_size):# Returns the latency between two nodes (packet_size is the size of the message in Mbs)
