@@ -1,10 +1,10 @@
 import random
 import time
+from copy import deepcopy
 
 from block import Block
 from network import Network
 from transaction import Transaction
-from copy import deepcopy
 
 
 class Event(object):
@@ -220,7 +220,7 @@ class MineBlock(Event):
 
         # Get TXn to be included in the block (all the maximum limits and other conditions are handled by the node)
         # To terminate the block mining process if the node has no TXNs to include in the block
-        if not current.txn_list:
+        if not current.txn_pool:
             print("MINING UNSUCCESSFUL: No TXN to include")
             return 
 
