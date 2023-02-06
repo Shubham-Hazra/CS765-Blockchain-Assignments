@@ -83,6 +83,7 @@ class Node:
     # Assuming a global transaction list and a global balance list
     # SIMULATOR MAY GENERATE BLOCKS WITH SAME TXNs, BUT RECEIVING NODE WILL NOT VALIDATE
     def validate_block(self, block):
+        return True
         if block.previous_id not in self.blockchain: # Checking if the previous block is in the blockchain
             return False
         for txn in block.transactions:

@@ -37,10 +37,6 @@ class Simulator:
     def transaction_delay(self):
         return random.expovariate(1 / self.Ttx)
 
-    # The delay for mining is included in Node class
-    # def block_delay(self):
-    #     return random.expovariate(1 / self.I)
-
     def run(self, max_steps = 10000):
         step_count = 0
         while step_count <= max_steps:
@@ -48,6 +44,18 @@ class Simulator:
             ############################################################################
             if not self.events.empty():
                 # Executing other events
+                current_event = self.events.get()
+            elif self.events.empty() and step_count <= max_steps:
+                node = random.sample(self.N.nodes,1)[0]
+                if random.random() > 0.8:
+                    self.events.put(CreateTXN(
+                    node.pid, node.pid, 0, self.transaction_delay()
+                    ))
+                else:
+                    # Randomly choosing a node and starting the mining process
+                    self.events.put(MineBlock(
+                    node.pid, node.pid, 0, node.get_PoW_delay()
+                    ))
                 current_event = self.events.get()
             else:
                 print("Simulation Complete!!")
@@ -62,7 +70,7 @@ class Simulator:
 
 
 # Test
-S = Simulator(100, 10, 30, 10000, 6, 100000)
+S = Simulator(40, 10, 80, 1000000, 6, 10000)
 # S.run(10)
 
 # node = random.sample(self.N.nodes,1)[0]

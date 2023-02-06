@@ -12,4 +12,4 @@ block_gen_mean = 125  # Tk mean
 block_generation_fee = 50
 
 CURRENT_TIME = 0 # Current time of the simulation
-I = 6 # Average inter arrival time between two consecutive blocks
+I = 1 # Average inter arrival time between two consecutive blocks
