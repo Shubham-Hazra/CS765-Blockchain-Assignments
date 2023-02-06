@@ -4,6 +4,7 @@ import time
 from block import Block
 from network import Network
 from transaction import Transaction
+from copy import deepcopy
 
 
 class Event(object):
@@ -46,17 +47,22 @@ class CreateTXN(Event):
         receiver = random.choice(receiver)
 
         # 2. randomly generate TXN amount 
-        TXN_amount = 1.2*current.BTC * random.uniform(0, 1) # Some probability that the TXN generated is inavlid
+        TXN_amount = 1.1*current.BTC * random.uniform(0, 1) # Some probability that the TXN generated is inavlid
 
         # 3. Update the balance if TXN is invalid else exit the event
-        if self.check_TXN(current, receiver, TXN_amount):
-            self.update_balance(current, receiver, TXN_amount)
-        else:
-            print("Invalid TXN: Payer balance:", current.BTC, " Receiver balance:", receiver.BTC, " TXN amount: ", TXN_amount)
-            return
+        # if self.check_TXN(current, receiver, TXN_amount):
+        #     self.update_balance(current, receiver, TXN_amount)
+        # else:
+        #     print("Invalid TXN: Payer balance:", current.BTC, " Receiver balance:", receiver.BTC, " TXN amount: ", TXN_amount)
+        #     return
+
+        # 3. Does not check whether the TXN is invalid, just broadcasts, TXn will be validated at the time of creation of the block
 
         new_txn = Transaction(simulator.txn_id, self.node_id, receiver.pid,TXN_amount, len(N.nodes))
         simulator.txn_id += 1
+
+        # Add the  TXN to the simulator global list
+        simulator.global_transactions[new_txn.id] = new_txn
 
         # For debugging
         print("TXN Gen:", self.node_id ,"heard that ", end= " ")
@@ -68,12 +74,12 @@ class CreateTXN(Event):
         # Add the TXN id to the TXN pool of the creator
         current.add_txn(new_txn.id)
 
-        # simulator.events.put(CreateTXN(
-        #     self.node_id,
-        #     self.node_id,
-        #     self.run_time,
-        #     self.run_time + simulator.transaction_delay()
-        # ))
+        simulator.events.put(CreateTXN(
+            self.node_id,
+            self.node_id,
+            self.run_time,
+            self.run_time + simulator.transaction_delay()
+        ))
 
         # 4. adds the ReceiveTXN Event in the Queue for those peers who have not yet received the TXN (ensured through a Boolean array associated with the Event)
         for neighbor in N.G.neighbors(self.node_id):
@@ -86,9 +92,6 @@ class CreateTXN(Event):
                 self.run_time,
                 self.run_time + t
             ))
-        
-    def check_TXN(self, sender, receiver, TXN_amount):
-        return (sender.BTC - TXN_amount >=0) and (receiver.BTC >=0)
 
     def update_balance(self, sender, receiver, TXN_amount):
         sender.BTC -= TXN_amount
@@ -139,17 +142,19 @@ class ForwardBlock(Event):
         # Do nothing if the block has already been seen
         if not self.block.block_id in current.blockchain.keys(): 
             # Return the ID of the previous block
-            prev_blk_id = current.blockchain.get(self.block.previous_id)
-            if prev_blk_id is None:
+            prev_blk = current.blockchain.get(self.block.previous_id)
+            if prev_blk is None:
                 print("BLOCK ERROR on",self.node_id,": Previous Block has not arrived")
             else: # If previous block has arrived
                 # # Make a new block to add to the node's tree
+                prev_block_balances = N.nodes[self.node_id].blockchain[prev_blk.block_id].balances
                 new_block = Block(
                     self.block.creator_id,
-                    prev_blk_id.block_id,
+                    prev_blk.block_id,
                     self.block.created_at,
                     self.block.transactions,
                     N.num_nodes,
+                    deepcopy(prev_block_balances),
                     self.block.block_id[6:]
                 )
                 print("previous ID of the block is",new_block.previous_id)
@@ -197,7 +202,6 @@ class MineBlock(Event):
         
     def addEvent(self, N, simulator):
         current = N.nodes[self.node_id]
-
         # for x in current.blocksReceiveTime:
         #     if x > self.run_time:
         #         return
@@ -236,9 +240,17 @@ class MineBlock(Event):
 
         # print("APPENDING MINING FEE TXN")
         # print(txn_to_include)
-    
+        prev_block_balances = N.nodes[self.node_id].blockchain[last_blck].balances
         # Generate a new block
-        new_blk = Block(current.pid,last_blck, self.run_time, txn_to_include,N.num_nodes, simulator.block_id, len(current.longest_chain))
+        new_blk = Block(current.pid,last_blck, self.run_time, txn_to_include,N.num_nodes,deepcopy(prev_block_balances), simulator.block_id, len(current.longest_chain))
+        # To update thebalances in the block
+        new_blk = current.update_balances(simulator, new_blk)
+        # To return, if the block creatd is invalid - no need to check at the receiver whether block is valid because sender has already checked
+        if not current.validate_TXNs(simulator, new_blk):
+            print("BLOCK CREATION ERROR: BLOCK CONTAINS INVALID TXN")
+            print("SEE INVALID BALANCES:", new_blk.balances)
+            return 
+
         print("BLOCK ID:",new_blk.block_id,", PREVIOUS POINTER:",new_blk.previous_id)
         simulator.block_id += 1
         simulator.mining_txn_id-=1
@@ -248,9 +260,6 @@ class MineBlock(Event):
 
         # Add the block to my chain
         current.add_block(new_blk)
-
-        # Update the mining reward in the creator's block
-        current.BTC += 50
 
         # Forwarding the block to its peers
         for neighbor in N.G.neighbors(self.node_id):
@@ -267,19 +276,6 @@ class MineBlock(Event):
                     self.run_time,
                     self.run_time + t
                 ))
-                
-
-
-
-
-
-
-
-
-
-    
-
-    
 
 
 

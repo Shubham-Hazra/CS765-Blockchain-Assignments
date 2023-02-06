@@ -16,17 +16,18 @@ class Simulator:
         self.block_id = 1
         self.mining_txn_id = -1
         self.events = PriorityQueue()
+        self.global_transactions = {} # To store th TXN objet indexed by the unique ID of the TXN
         self.initialize_events()
         self.run(max_steps)
         self.print_blockchains()
 
     def initialize_events(self):
         print(len(self.N.nodes))
-        for node in self.N.nodes:
+        for node in self.N.nodes[:int(len(self.N.nodes)/2)]:
             self.events.put(CreateTXN(
                 node.pid, node.pid, 0, self.transaction_delay()
             ))
-        nodes_to_mine = random.sample(self.N.nodes,3)
+        nodes_to_mine = random.sample(self.N.nodes,8)
          
         for node in nodes_to_mine:
             # Randomly choosing a node and starting the mining process
@@ -47,7 +48,7 @@ class Simulator:
                 current_event = self.events.get()
             elif self.events.empty() and step_count <= max_steps:
                 node = random.sample(self.N.nodes,1)[0]
-                if random.random() > 0.8:
+                if random.random() > 0.7:
                     self.events.put(CreateTXN(
                     node.pid, node.pid, 0, self.transaction_delay()
                     ))
@@ -65,12 +66,12 @@ class Simulator:
             step_count+=1
 
     def print_blockchains(self):
-        for node in self.N.nodes:
+        for node in self.N.nodes[0:6]:
             node.print_blockchain()
 
 
 # Test
-S = Simulator(40, 10, 30, 100000, 6, 100000)
+S = Simulator(100, 10, 10, 1000, 6, 100000)
 # S.run(10)
 
 # node = random.sample(self.N.nodes,1)[0]

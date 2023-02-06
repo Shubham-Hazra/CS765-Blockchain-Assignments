@@ -24,7 +24,7 @@ class Network:
         self.set_latency_attrb() # Sets the latency of the network
         self.set_attrb()
 
-        self.nodes = [Node(i, self.attrb[i],  100) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
+        self.nodes = [Node(i, self.attrb[i],100,num_nodes) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
         # By default everyone has 100 BTC at the start
 
     def create_graph(self):

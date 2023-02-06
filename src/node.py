@@ -12,7 +12,7 @@ from parameters import *
 
 
 class Node:
-    def __init__(self, pid, attrb, BTC):
+    def __init__(self, pid, attrb, BTC, num_nodes):
 
         self.pid = pid  # Unique Id of the peer
         self.cpu = attrb['cpu']  # CPU speed of the peer
@@ -21,7 +21,7 @@ class Node:
         self.peers = {}  # Storing the pointer for function to put events in Queues of peers
         self.BTC = BTC  # Initial BTC balance of the peer
         self.blockchain_tree = {"Block_0": {"parent": None}} # Blockchain tree of the peer
-        self.blockchain = {"Block_0":Block(None,None,None,None,0,0,0)}  # Blockchain of the peer - stores the block objects, Initially the genesis block is added
+        self.blockchain = {"Block_0":Block(None,None,None,None,0,[100]*num_nodes,0,0)}  # Blockchain of the peer - stores the block objects, Initially the genesis block is added
         self.longest_chain = ["Block_0"] # Longest chain of the peer as a list of block ids
         self.max_len = 0  # Length of the longest chain
         self.txn_list = []  # List of transactions that the peer has seen but not included in any block
@@ -127,10 +127,14 @@ class Node:
 
     # Get TXN from the TXN pool which are not yet included in any block that the node has heard
     def get_TXN_to_include(self):
-        upper_limit = max(len(self.txn_list),999) # Upper limit of the number of transactions that can be included in the block
-        upper_limit = min(upper_limit,len(self.txn_list)) # Actual upper limit is minimum of length and 999
-        num_txn_to_mine = random.randint(int(upper_limit/2),upper_limit) # Number of transactions to be included in the block
+        print("TXN POOL:",self.txn_list)
+        if len(self.txn_list) > 999:
+            upper_limit = 999
+        else:
+            upper_limit = len(self.txn_list)
+        num_txn_to_mine = random.randint(0,upper_limit) # Number of transactions to be included in the block
         txn_to_mine = random.sample(self.txn_list,num_txn_to_mine) # Transactions to be included in the block
+        print("TXN to include: ",num_txn_to_mine)
         return txn_to_mine
 
     def get_PoW_delay(self):
@@ -167,13 +171,28 @@ class Node:
         nx.draw(G, with_labels=True)
         plt.show()
 #############################################################################################################################################
+    # The following function is to validate the TXNs in the block 
+    def validate_TXNs(self, simulator, block):
+        for txn_id in block.transactions[:-1]:
+            txn = simulator.global_transactions[txn_id]
+            if block.balances[txn.sender_id]<0:
+                return False
+        return True
+
+    def update_balances(self,simulator,block):
+        for txn_id in block.transactions[:-1]:
+            txn = simulator.global_transactions[txn_id]
+            block.balances[txn.sender_id]-=txn.amount
+            block.balances[txn.receiver_id]+=txn.amount
+        # block.balances[block.transactions[-1].receiver_id]+=block.transactions[-1].amount
+        return block 
 
 # Testing the code
 if __name__ == "__main__":
-    N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100)
-    N.add_block(Block(1, "Block_0", 0, ["txn_1", "txn_2"],2))
-    N.add_block(Block(2, "Block_0", 1, ["txn_3", "txn_4"],2))
-    N.add_block(Block(3, "Block_1", 2, ["txn_5", "txn_6"],2))
+    N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100,100)
+    N.add_block(Block(1, "Block_0", 0,[100,100], ["txn_1", "txn_2"],2))
+    N.add_block(Block(2, "Block_0", 1, [100,100],["txn_3", "txn_4"],2))
+    N.add_block(Block(3, "Block_1", 2,[100,100], ["txn_5", "txn_6"],2))
     print(N.blockchain_tree)
     print(N.find_longest_chain())
     print(f"Maximum length: {N.max_len}")
