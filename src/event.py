@@ -47,7 +47,7 @@ class CreateTXN(Event):
         receiver = random.choice(receiver)
 
         # 2. randomly generate TXN amount 
-        TXN_amount = 1.1*current.BTC * random.uniform(0, 1) # Some probability that the TXN generated is inavlid
+        TXN_amount = 1.2*current.BTC * random.uniform(0, 1) # Some probability that the TXN generated is inavlid
 
         # 3. Update the balance if TXN is invalid else exit the event
         # if self.check_TXN(current, receiver, TXN_amount):

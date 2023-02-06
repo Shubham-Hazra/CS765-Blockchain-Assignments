@@ -3,6 +3,7 @@ from queue import PriorityQueue
 
 from event import CreateTXN, Event, MineBlock, ReceiveTXN
 from network import Network
+from treelib import Node, Tree
 
 
 class Simulator:
@@ -20,6 +21,7 @@ class Simulator:
         self.initialize_events()
         self.run(max_steps)
         self.print_blockchains()
+        self.visualize()
 
     def initialize_events(self):
         print(len(self.N.nodes))
@@ -48,7 +50,7 @@ class Simulator:
                 current_event = self.events.get()
             elif self.events.empty() and step_count <= max_steps:
                 node = random.sample(self.N.nodes,1)[0]
-                if random.random() > 0.7:
+                if random.random() > 0.8:
                     self.events.put(CreateTXN(
                     node.pid, node.pid, 0, self.transaction_delay()
                     ))
@@ -69,9 +71,19 @@ class Simulator:
         for node in self.N.nodes[0:6]:
             node.print_blockchain()
 
+    def visualize(self):
+        tree = Tree()
+        node = self.N.nodes[0]
+        tree.create_node("Block_0", "Block_0")
+        for block in node.blockchain_tree.keys():
+            if block == "Block_0":
+                continue
+            tree.create_node(block,block, parent = node.blockchain_tree[block]['parent'])
+        tree.show()
+
 
 # Test
-S = Simulator(100, 10, 10, 1000, 6, 100000)
+S = Simulator(100, 10, 30, 100, 6, 100000)
 # S.run(10)
 
 # node = random.sample(self.N.nodes,1)[0]
