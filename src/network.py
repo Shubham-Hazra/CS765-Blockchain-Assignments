@@ -8,7 +8,7 @@ from node import Node
 
 
 class Network:
-    def __init__(self, num_nodes):
+    def __init__(self, num_nodes,z0,z1, I):
         self.num_nodes = num_nodes; # Number of nodes in theconnected graph
         self.G = nx.Graph() # Stores the graph of the network
         self.adj = {} # Stores the dictionary of lists for storing the graph of the network
@@ -18,11 +18,11 @@ class Network:
         for i in range(self.num_nodes): # Initialize the dictionary
             self.attrb[i] = {}
 
-        self.calc_cpu(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
-        self.calc_speed(10) # IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
-        self.set_hashing_power(10) # Sets the hashing power of the nodes ### IMPORTANT: CHANGE AFTERWARDS, FOR NOW HAS BEEN SET TO CONSTANT
+        self.calc_speed(z0) # Sets z0 percent of nodes to low speed ("slow")
+        self.calc_cpu(z1) # Sets z1 percent of nodes as low CPU
+        self.set_hashing_power(I) # Sets the hashing power of the network
         self.set_latency_attrb() # Sets the latency of the network
-        self.set_attrb()
+        self.set_attrb() # Sets the attributes of the nodes
 
         self.nodes = [Node(i, self.attrb[i],100,num_nodes) for i in range(self.num_nodes)] # Array of Node objects which have operations defined in them 
         # By default everyone has 100 BTC at the start

@@ -7,8 +7,7 @@ class Block:
         self.created_at = created_at # Set the time of creation of the block
         self.transactions = transactions # List of all the TXNs
         self.length = length # Length of the block initially set to 0 (Length is updated when the block is added to the blockchain of a particular peer)
-        self.received = [0]*n
-
+        self.received = [0]*n # Array to store which peer has received the block
         self.balances = balances # Stores teh balances of all the node at the time the block was created
 
     def get_size(self): # Function to get the size of the block in Mbs

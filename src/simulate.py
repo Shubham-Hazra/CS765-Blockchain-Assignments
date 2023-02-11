@@ -1,14 +1,15 @@
 import random
 from queue import PriorityQueue
 
+from treelib import Node, Tree
+
 from event import CreateTXN, Event, MineBlock, ReceiveTXN
 from network import Network
-from treelib import Node, Tree
 
 
 class Simulator:
     def __init__(self, n, z0,z1, Ttx, I, max_steps):
-        self.N = Network(n)
+        self.N = Network(n,z0,z1,I)
         self.z0 = z0 # Percentage of slow nodes
         self.z1 = z1 # Percentage of low CPU nodes
         self.Ttx = Ttx # Mean transaction interarrival time
@@ -16,23 +17,26 @@ class Simulator:
         self.txn_id = 0
         self.block_id = 1
         self.mining_txn_id = -1
+        # self.num_min_events = 0
         self.events = PriorityQueue()
         self.global_transactions = {} # To store th TXN objet indexed by the unique ID of the TXN
         self.initialize_events()
         self.run(max_steps)
         self.print_blockchains()
         self.visualize()
+        
 
     def initialize_events(self):
         print(len(self.N.nodes))
-        for node in self.N.nodes[:int(len(self.N.nodes)/2)]:
+        for node in self.N.nodes:
             self.events.put(CreateTXN(
                 node.pid, node.pid, 0, self.transaction_delay()
             ))
-        nodes_to_mine = random.sample(self.N.nodes,8)
+        nodes_to_mine = random.sample(self.N.nodes,2)
          
         for node in nodes_to_mine:
             # Randomly choosing a node and starting the mining process
+            # self.num_min_events+=1
             self.events.put(MineBlock(
             node.pid, node.pid, 0, node.get_PoW_delay()
             ))
@@ -45,16 +49,12 @@ class Simulator:
         while step_count <= max_steps:
             
             ############################################################################
-            if not self.events.empty():
+            if not self.events.empty() and max_steps%int(max_steps/20)!=0:
                 # Executing other events
                 current_event = self.events.get()
-            elif self.events.empty() and step_count <= max_steps:
-                node = random.sample(self.N.nodes,1)[0]
-                if random.random() > 0.8:
-                    self.events.put(CreateTXN(
-                    node.pid, node.pid, 0, self.transaction_delay()
-                    ))
-                else:
+            elif  max_steps%int(max_steps/20)==0 and step_count <= max_steps:
+                node_list = random.sample(self.N.nodes,1)[0:2]
+                for node in node_list:
                     # Randomly choosing a node and starting the mining process
                     self.events.put(MineBlock(
                     node.pid, node.pid, 0, node.get_PoW_delay()
@@ -83,7 +83,7 @@ class Simulator:
 
 
 # Test
-S = Simulator(100, 10, 30, 100, 6, 100000)
+S = Simulator(100, 10, 30, 1, 600, 100000)
 # S.run(10)
 
 # node = random.sample(self.N.nodes,1)[0]
@@ -96,3 +96,17 @@ S = Simulator(100, 10, 30, 100, 6, 100000)
 #     self.events.put(MineBlock(
 #     node.pid, node.pid, 0, node.get_PoW_delay()
 #     ))
+
+# elif self.num_min_events == 0 and step_count <= max_steps:
+# node_list = random.sample(self.N.nodes,1)[0:6]
+# for node in node_list:
+#     if random.random() > 0.95:
+#         self.events.put(CreateTXN(
+#         node.pid, node.pid, 0, self.transaction_delay()
+#         ))
+#     else:
+#         # Randomly choosing a node and starting the mining process
+#         self.events.put(MineBlock(
+#         node.pid, node.pid, 0, node.get_PoW_delay()
+#         ))
+# current_event = self.events.get()

@@ -1,10 +1,10 @@
 import random
 import time
+from copy import deepcopy
 
 from block import Block
 from network import Network
 from transaction import Transaction
-from copy import deepcopy
 
 
 class Event(object):
@@ -47,7 +47,7 @@ class CreateTXN(Event):
         receiver = random.choice(receiver)
 
         # 2. randomly generate TXN amount 
-        TXN_amount = 1.2*current.BTC * random.uniform(0, 1) # Some probability that the TXN generated is inavlid
+        TXN_amount = 1.00005*current.BTC * random.uniform(0, 1) # Some probability that the TXN generated is inavlid
 
         # 3. Update the balance if TXN is invalid else exit the event
         # if self.check_TXN(current, receiver, TXN_amount):
@@ -142,29 +142,27 @@ class ForwardBlock(Event):
         # Do nothing if the block has already been seen
         if not self.block.block_id in current.blockchain.keys(): 
             # Return the ID of the previous block
-            prev_blk = current.blockchain.get(self.block.previous_id)
-            if prev_blk is None:
-                print("BLOCK ERROR on",self.node_id,": Previous Block has not arrived")
-            else: # If previous block has arrived
-                # # Make a new block to add to the node's tree
-                prev_block_balances = N.nodes[self.node_id].blockchain[prev_blk.block_id].balances
-                new_block = Block(
-                    self.block.creator_id,
-                    prev_blk.block_id,
-                    self.block.created_at,
-                    self.block.transactions,
-                    N.num_nodes,
-                    deepcopy(prev_block_balances),
-                    self.block.block_id[6:]
+            # # Make a new block to add to the node's tree
+
+            # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
+            current.blocksReceiveTime.append([self.run_time,current.max_len]) # To store the execution time of the event so that we can ensure no block has arrived between t_k and T_k
+            # Append information about chain length BEFORE adding the new block in the blockchain
+
+            # prev_block_balances = N.nodes[self.node_id].blockchain[self.block.previous_id].balances
+            new_block = Block(
+                self.block.creator_id,
+                self.block.previous_id,
+                self.block.created_at,
+                self.block.transactions,
+                N.num_nodes,
+                deepcopy(self.block.balances),
+                self.block.block_id[6:]
                 )
-                print("previous ID of the block is",new_block.previous_id)
-                # Add the block to the blockchain of the node and removes common TXNs from the TXN pool of the node
-                current.add_block(new_block)
+            print("previous ID of the block is",new_block.previous_id)
+            # Add the block to the blockchain of the node and removes common TXNs from the TXN pool of the node
+            current.add_block(new_block)
         else:
             print("ONLY FORWARDING BLOCK on",self.node_id,":",self.node_id,"has already added",self.block.block_id,"into his blockchain")
-
-        # To store the arrival time of the block received, between t_k and t_k + T_k, during PoW, to ensure that no other block had come between t_k and t_k + T_k - so that the node can create a block
-        current.blocksReceiveTime.append(self.block.created_at) # To store the execution time of the event so that we can ensure no block has arrived between t_k and T_k
 
         # Forwarding the block to its peers
         for neighbor in N.G.neighbors(self.node_id):
@@ -207,8 +205,8 @@ class MineBlock(Event):
         #         return
         # The block generation event was created at t_k (create_time) and scheduled for t_k + T_k (run_time) 
         # if there is some block in the list of blocks seen by the node such that it reached that node at timet,t_k < t < t_k + T_k then reject this block generation event
-        for block_rcv_time in current.blocksReceiveTime: 
-            if block_rcv_time > self.create_time and block_rcv_time < self.run_time:
+        for block_rcv_time, length in current.blocksReceiveTime: 
+            if block_rcv_time > self.create_time and block_rcv_time < self.run_time and length < current.max_len:
                 print("MINING UNSUCCESSFUL: PoW on",self.node_id,"Unsuccessful :(, some other node has created the block")
                 return
 
@@ -220,7 +218,7 @@ class MineBlock(Event):
 
         # Get TXn to be included in the block (all the maximum limits and other conditions are handled by the node)
         # To terminate the block mining process if the node has no TXNs to include in the block
-        if not current.txn_list:
+        if not current.txn_pool:
             print("MINING UNSUCCESSFUL: No TXN to include")
             return 
 
@@ -276,6 +274,7 @@ class MineBlock(Event):
                     self.run_time,
                     self.run_time + t
                 ))
+        # simulator.num_min_events-=1
 
 
 
