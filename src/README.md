@@ -53,4 +53,5 @@ Where:
 - steps: The number of steps to run the simulation for (defaults to 10000)
 
 After all the steps are completed, the blockchain_tree object, blockchain_tree_dict and the networkx graph converted to PNGs are saved to the directories blockchain_tree, blockchain_tree_dict and networkx_graph respectively.\
-The conversion from networkx graphs to PNGs may take a while depending upon the number of nodes.
+The conversion from networkx graphs to PNGs may take a while depending upon the number of nodes. \
+The blockchain_tree object and blockchain_tree_dict are stored as pickle files, the functions to load these are given in node.py .\
