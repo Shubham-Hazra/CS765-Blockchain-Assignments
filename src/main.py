@@ -27,8 +27,9 @@ if __name__ == "__main__":
     os.mkdir('blockchain_tree')
     os.mkdir('networkx_graph')
     os.mkdir('blockchain_tree_dict')
+    print(f"Converting blockchain tree graphs to png and saving to networkx_graph. This step may take a while...")
     for node in simulator.N.nodes:
         node.dump_blockchain_tree()
-        node.dump_networkx_graph()
         node.dump_blockchain_tree_dict()
+        node.dump_networkx_graph()
         

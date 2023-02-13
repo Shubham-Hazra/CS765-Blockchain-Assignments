@@ -215,16 +215,17 @@ class Node:
             pickle.dump(tree, f)
     
     def dump_networkx_graph(self): # Dumping the networkx graph object
-        filename = "networkx_graph/"+str(self.pid)+".pkl"
-        with open(filename, 'wb') as f:
-            G = nx.Graph()
-            for key, value in self.blockchain_tree.items():
-                if value['parent'] is not None:
-                    G.add_node(key)
-                    G.add_edge(key, value['parent'])
-                else:
-                    G.add_node(key)
-            pickle.dump(G, f)
+        filename = "networkx_graph/"+str(self.pid)+".png"
+        G = nx.Graph()
+        for key, value in self.blockchain_tree.items():
+            if value['parent'] is not None:
+                G.add_node(key)
+                G.add_edge(key, value['parent'])
+            else:
+                G.add_node(key)
+        plt.figure(figsize=(10, 10))
+        nx.draw(G, with_labels=True)
+        plt.savefig(filename, format="PNG")
         
     def dump_blockchain_tree_dict(self): # Dumping the blockchain tree dictionary object
         filename = "blockchain_tree_dict/"+str(self.pid)+".pkl"
@@ -239,16 +240,6 @@ class Node:
                 tree.show()
             return tree
     
-    def load_networkx_graph(self,draw=False): # Loading the networkx graph object
-        filename = "networkx_graph/"+str(self.pid)+".pkl"
-        with open(filename, 'rb') as f:
-            G = pickle.load(f)
-            if draw:
-                plt.figure(figsize=(10, 10))
-                nx.draw(G, with_labels=True)
-                plt.show()
-            return G
-
     def load_blockchain_tree_dict(self): # Loading the blockchain tree dictionary object
         filename = "blockchain_tree_dict/"+str(self.pid)+".pkl"
         with open(filename, 'rb') as f:
