@@ -34,7 +34,7 @@ This aim of this assignment is to build a discrete-event simulator for a P2P cry
 - `main.py`         - Main function
 
 # How to run
-In the source directory run `python3 main.py --n [n] --z0 [z0] --z1 [z1] --Ttx [Ttx] --I [I] --steps [steps]`
-For eg: `python main.py --n 100 --z0 10 --z1 40 --Ttx 10 --I 60 --steps 100000`
-By default, simulations run for a maximum of 100000 steps
-Use number of nodes to be $\geq 15$ to be safe.
+In the source directory run `python3 main.py --n [n] --z0 [z0] --z1 [z1] --Ttx [Ttx] --I [I] --steps [steps]` \
+For eg: `python main.py --n 100 --z0 10 --z1 40 --Ttx 10 --I 60 --steps 100000` \
+By default, simulations run for a maximum of 100000 steps \
+Use number of nodes to be $\geq 15$ to be safe \
