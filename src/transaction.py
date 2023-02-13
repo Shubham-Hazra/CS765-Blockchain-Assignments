@@ -11,10 +11,12 @@ class Transaction:
             self.message = f"{self.id}: {self.sender_id} mines {self.amount} coins" # Transaction message for mining transactions
         self.received = [0] * n  # n is the number of peers in the network
 
+    # VERIFIED
     # Function for printing transaction information
     def print_transaction(self):
         print(self.message)
 
+    # VERIFIED
     # Function for getting transaction message
     def get_transaction(self):
         return self.message

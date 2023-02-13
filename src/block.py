@@ -10,10 +10,11 @@ class Block:
         self.received = [0]*n # Array to store which peer has received the block
         self.balances = balances # Stores teh balances of all the node at the time the block was created
 
+    # VERIFIED
     def get_size(self): # Function to get the size of the block in Mbs
         return (1 + len(self.transactions)) * 0.008 # Assuming that each transaction is 1KB and the coinbase is 1KB            
 
-
+    # VERIFIED
     # Function for printing block information
     def print_block(self):
         print("===========================================================================")
