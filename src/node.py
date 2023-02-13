@@ -214,7 +214,8 @@ class Node:
         return block 
 
 #############################################################################################################################################
-    def dump_blockchain(self, filename):
+    def dump_blockchain_tree(self):
+        filename = "blockchain_tree/"+str(self.pid)+".pkl"
         with open(filename, 'wb') as f:
             tree = Tree()
             node = self.N.nodes[0]
@@ -224,6 +225,18 @@ class Node:
                     continue
                 tree.create_node(block,block, parent = node.blockchain_tree[block]['parent'])
             tree.show()
+    
+    def dump_networkx_graph(self):
+        filename = "networkx_graph/"+str(self.pid)+".pkl"
+        with open(filename, 'wb') as f:
+            G = nx.Graph()
+            for key, value in self.blockchain_tree.items():
+                if value['parent'] is not None:
+                    G.add_node(key)
+                    G.add_edge(key, value['parent'])
+                else:
+                    G.add_node(key)
+            nx.write_gpickle(G, f)
         
 
 # Testing the code
