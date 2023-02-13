@@ -51,5 +51,5 @@ Where:
  - Ttx: Mean transaction interarrival time (defaults to 10)
  - I: Mean block interarrival time (defaults  to 60)
  - steps: The number of steps to run the simulation for (defaults to 10000)
-After all the steps are completed, the blockchain_tree object, blockchain_tree_dict and the networkx graph converted to PNGs are saved to the directories blockchain_tree, blockchain_tree_dict and networkx_graph respectively.\
+\ After all the steps are completed, the blockchain_tree object, blockchain_tree_dict and the networkx graph converted to PNGs are saved to the directories blockchain_tree, blockchain_tree_dict and networkx_graph respectively.\
 The conversion from networkx graphs to PNGs may take a while depending upon the number of nodes.
