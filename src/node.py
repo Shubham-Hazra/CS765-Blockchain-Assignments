@@ -1,5 +1,6 @@
 import collections
 import json
+import pickle
 import random
 from queue import Queue
 
@@ -173,21 +174,6 @@ class Node:
     # Following function will be used at the end to print the blockchain (tree form) of the node
     def print_blockchain(self):
         dict_ = self.blockchain_tree.copy()
-        # added = set()
-        # tree = Tree()
-        # while dict_:  # while dict_ is not empty
-        #     for key, value in dict_.items():
-        #         if value['parent'] in added:
-        #             tree.create_node(key, key, parent=value['parent'])
-        #             added.add(key)
-        #             dict_.pop(key)
-        #             break
-        #         elif value['parent'] is None:
-        #             tree.create_node(key, key)
-        #             added.add(key)
-        #             dict_.pop(key)
-        #             break
-        # tree.show()
         G = nx.Graph()
         for key, value in dict_.items():
             if value['parent'] is not None:
@@ -217,7 +203,7 @@ class Node:
         return block 
 
 #############################################################################################################################################
-    def dump_blockchain_tree(self):
+    def dump_blockchain_tree(self): # Dumping the blockchain tree object
         filename = "blockchain_tree/"+str(self.pid)+".pkl"
         with open(filename, 'wb') as f:
             tree = Tree()
@@ -225,10 +211,10 @@ class Node:
             for block in self.blockchain_tree.keys():
                 if block == "Block_0":
                     continue
-                tree.create_node(block,block, parent = node.blockchain_tree[block]['parent'])
-        
+                tree.create_node(block,block, parent = self.blockchain_tree[block]['parent'])
+            pickle.dump(tree, f)
     
-    def dump_networkx_graph(self):
+    def dump_networkx_graph(self): # Dumping the networkx graph object
         filename = "networkx_graph/"+str(self.pid)+".pkl"
         with open(filename, 'wb') as f:
             G = nx.Graph()
@@ -238,7 +224,36 @@ class Node:
                     G.add_edge(key, value['parent'])
                 else:
                     G.add_node(key)
+            pickle.dump(G, f)
         
+    def dump_blockchain_tree_dict(self): # Dumping the blockchain tree dictionary object
+        filename = "blockchain_tree_dict/"+str(self.pid)+".pkl"
+        with open(filename, 'wb') as f:
+            pickle.dump(self.blockchain_tree, f)
+    
+    def load_blockchain_tree(self,show=False): # Loading the blockchain tree object
+        filename = "blockchain_tree/"+str(self.pid)+".pkl"
+        with open(filename, 'rb') as f:
+            tree = pickle.load(f)
+            if show:
+                tree.show()
+            return tree
+    
+    def load_networkx_graph(self,draw=False): # Loading the networkx graph object
+        filename = "networkx_graph/"+str(self.pid)+".pkl"
+        with open(filename, 'rb') as f:
+            G = pickle.load(f)
+            if draw:
+                plt.figure(figsize=(10, 10))
+                nx.draw(G, with_labels=True)
+                plt.show()
+            return G
+
+    def load_blockchain_tree_dict(self): # Loading the blockchain tree dictionary object
+        filename = "blockchain_tree_dict/"+str(self.pid)+".pkl"
+        with open(filename, 'rb') as f:
+            dict_ = pickle.load(f)
+            return dict_
 
 # Testing the code
 if __name__ == "__main__":
