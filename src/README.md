@@ -45,11 +45,11 @@ This aim of this assignment is to build a discrete-event simulator for a P2P cry
 In the source directory run `python3 main.py --n [n] --z0 [z0] --z1 [z1] --Ttx [Ttx] --I [I] --steps [steps]` \
 For eg: `python3 main.py --n 100 --z0 10 --z1 40 --Ttx 10 --I 60 --steps 100000` \
 Where:
- - n: Number of nodes/peers (Use number of nodes to be $\geq 15$ to be safe) (defaults to 50)
- - z0: Percentage of slow nodes (defaults to 10)
- - z1: Percentage of low CPU nodes (defaults to 40)
- - Ttx: Mean transaction interarrival time (defaults to 10)
- - I: Mean block interarrival time (defaults  to 60)
- - steps: The number of steps to run the simulation for (defaults to 10000)
-\ After all the steps are completed, the blockchain_tree object, blockchain_tree_dict and the networkx graph converted to PNGs are saved to the directories blockchain_tree, blockchain_tree_dict and networkx_graph respectively.\
+- n: Number of nodes/peers (Use number of nodes to be $\geq 15$ to be safe) (defaults to 50)
+- z0: Percentage of slow nodes (defaults to 10)
+- z1: Percentage of low CPU nodes (defaults to 40)
+- Ttx: Mean transaction interarrival time (defaults to 10)
+- I: Mean block interarrival time (defaults  to 60)
+- steps: The number of steps to run the simulation for (defaults to 10000)
+After all the steps are completed, the blockchain_tree object, blockchain_tree_dict and the networkx graph converted to PNGs are saved to the directories blockchain_tree, blockchain_tree_dict and networkx_graph respectively.\
 The conversion from networkx graphs to PNGs may take a while depending upon the number of nodes.
