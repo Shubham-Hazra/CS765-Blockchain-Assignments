@@ -6,12 +6,12 @@ from simulate import Simulator
 
 # Take command line arguments
 cli = argparse.ArgumentParser() # Command line interface
-cli.add_argument("--n", type=int, default=100, help="Number of nodes") # Number of nodes
+cli.add_argument("--n", type=int, default=50, help="Number of nodes") # Number of nodes
 cli.add_argument("--z0", type=float, default=10, help="Percentage of slow nodes") # Percentage of slow nodes
-cli.add_argument("--z1", type=float, default=10, help="Percentage of low CPU nodes") # Percentage of low CPU nodes
-cli.add_argument("--Ttx", type=float, default=3, help="Mean transaction interarrival time") # Mean transaction interarrival time
-cli.add_argument("--I", type=float, default=10, help="Mean block interarrival time") # Mean block interarrival time
-cli.add_argument("--steps", type=int, default=10, help="The number of steps to run the simulation for") # The number of steps to run the simulation for
+cli.add_argument("--z1", type=float, default=40, help="Percentage of low CPU nodes") # Percentage of low CPU nodes
+cli.add_argument("--Ttx", type=float, default=10, help="Mean transaction interarrival time") # Mean transaction interarrival time
+cli.add_argument("--I", type=float, default=60, help="Mean block interarrival time") # Mean block interarrival time
+cli.add_argument("--steps", type=int, default=10000, help="The number of steps to run the simulation for") # The number of steps to run the simulation for
 
 args = cli.parse_args() # Parse the arguments
 
