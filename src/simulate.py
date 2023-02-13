@@ -10,7 +10,7 @@ import sys
 
 
 class Simulator:
-    def __init__(self, n, z0,z1, Ttx, I, max_steps):
+    def __init__(self, n, z0,z1, Ttx, I, max_steps=100000):
         self.N = Network(n,z0,z1,I)
         self.z0 = z0 # Percentage of slow nodes
         self.z1 = z1 # Percentage of low CPU nodes

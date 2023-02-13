@@ -13,7 +13,6 @@ class Network:
         self.G = nx.Graph() # Stores the graph of the network
         self.adj = {} # Stores the dictionary of lists for storing the graph of the network
         self.create_graph() # create the P2P Network
-
         self.attrb = {} # Dictionary which contain attributes of each node (CPU and Speed)
         for i in range(self.num_nodes): # Initialize the dictionary
             self.attrb[i] = {}
