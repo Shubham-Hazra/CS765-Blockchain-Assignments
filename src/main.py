@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from simulate import Simulator
 
@@ -14,11 +15,13 @@ cli.add_argument("--steps", type=int, default=10, help="The number of steps to r
 args = cli.parse_args() # Parse the arguments
 
 if __name__ == "__main__":
-    print(args.n)
-    print(args.z0)
-    print(args.z1)
-    print(args.Ttx)
-    print(args.I)
-    print(args.steps)
     simulator = Simulator(args.n, args.z0, args.z1, args.Ttx, args.I, args.steps)
-    simulator.run() # Run the simulation
+    folders = os.listdir()
+    if 'blockchain_tree' not in folders:
+        os.mkdir('blockchain_tree')
+    if 'networkx_graph' not in folders:
+        os.mkdir('networkx_graph')
+    for node in simulator.N.nodes:
+        node.dump_blockchain_tree()
+        node.dump_networkx_graph()
+        

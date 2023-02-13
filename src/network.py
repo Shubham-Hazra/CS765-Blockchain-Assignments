@@ -13,14 +13,14 @@ class Network:
         self.G = nx.Graph() # Stores the graph of the network
         self.adj = {} # Stores the dictionary of lists for storing the graph of the network
         self.create_graph() # create the P2P Network
-
         self.attrb = {} # Dictionary which contain attributes of each node (CPU and Speed)
         for i in range(self.num_nodes): # Initialize the dictionary
             self.attrb[i] = {}
 
         self.calc_speed(z0) # Sets z0 percent of nodes to low speed ("slow")
         self.calc_cpu(z1) # Sets z1 percent of nodes as low CPU
-        self.set_hashing_power(I) # Sets the hashing power of the network
+        self.set_hashing_power(z1) # Sets the hashing power of the network
+        self.set_average_block_time(I)
         self.set_latency_attrb() # Sets the latency of the network
         self.set_attrb() # Sets the attributes of the nodes
 
@@ -90,6 +90,9 @@ class Network:
             else:
                 self.attrb[i]['cpu'] = "high"
 
+    def set_average_block_time(self,I):
+        for i in range(self.num_nodes):
+            self.attrb['I'] = I
 
     def calc_speed(self, z): # Sets z percent of nodes to low speed ("slow")
         z = int(z*self.num_nodes/100.0)

@@ -18,7 +18,7 @@ class Node:
         self.cpu = attrb['cpu']  # CPU speed of the peer
         self.hashing_power = attrb['hashing_power']  # Hashing power of the peer
         self.speed = attrb['speed']  # Speed of the peer
-        self.I = attrb['hashing_power']  # Initial number of transactions that the peer can include in a block
+        self.I = attrb['I']  # Initial number of transactions that the peer can include in a block
         self.peers = {}  # Storing the pointer for function to put events in Queues of peers
         self.BTC = BTC  # Initial BTC balance of the peer
         self.blockchain_tree = {"Block_0": {"parent": None}} # Blockchain tree of the peer
@@ -51,8 +51,10 @@ class Node:
             self.add_block_to_chain(block)
         elif block.previous_id not in self.block_buffer:
             self.block_buffer.append(block) # Adding the block to the block buffer
-        for i in range(len(self.block_buffer)):
-            self.add_block(self.block_buffer[i])
+        for block in self.block_buffer:
+            if block.previous_id in self.blockchain.keys():
+                self.add_block_to_chain(block)
+                self.block_buffer.remove(block)
         
 
     def add_block_to_chain(self, block):
@@ -218,9 +220,8 @@ class Node:
         filename = "blockchain_tree/"+str(self.pid)+".pkl"
         with open(filename, 'wb') as f:
             tree = Tree()
-            node = self.N.nodes[0]
             tree.create_node("Block_0", "Block_0")
-            for block in node.blockchain_tree.keys():
+            for block in self.blockchain_tree.keys():
                 if block == "Block_0":
                     continue
                 tree.create_node(block,block, parent = node.blockchain_tree[block]['parent'])

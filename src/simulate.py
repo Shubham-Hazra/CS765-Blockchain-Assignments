@@ -83,7 +83,8 @@ class Simulator:
 
 
 # Test
-S = Simulator(100, 10, 30, 1, 600, 100000)
+if __name__ == '__main__':
+    S = Simulator(100, 10, 30, 1, 600, 100000)
 # S.run(10)
 
 # node = random.sample(self.N.nodes,1)[0]
