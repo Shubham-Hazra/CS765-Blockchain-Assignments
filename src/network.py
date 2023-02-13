@@ -92,7 +92,7 @@ class Network:
 
     def set_average_block_time(self,I):
         for i in range(self.num_nodes):
-            self.attrb['I'] = I
+            self.attrb[i]['I'] = I
 
     def calc_speed(self, z): # Sets z percent of nodes to low speed ("slow")
         z = int(z*self.num_nodes/100.0)

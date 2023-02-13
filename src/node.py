@@ -1,4 +1,5 @@
 import collections
+import json
 import random
 from queue import Queue
 
@@ -225,7 +226,7 @@ class Node:
                 if block == "Block_0":
                     continue
                 tree.create_node(block,block, parent = node.blockchain_tree[block]['parent'])
-            tree.show()
+        
     
     def dump_networkx_graph(self):
         filename = "networkx_graph/"+str(self.pid)+".pkl"
@@ -237,7 +238,6 @@ class Node:
                     G.add_edge(key, value['parent'])
                 else:
                     G.add_node(key)
-            nx.write_gpickle(G, f)
         
 
 # Testing the code
