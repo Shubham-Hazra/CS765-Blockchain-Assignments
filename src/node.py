@@ -1,6 +1,8 @@
 import collections
 import json
+import pickle
 import random
+import sys
 from queue import Queue
 
 import matplotlib.pyplot as plt
@@ -231,38 +233,46 @@ class Node:
         nx.draw(G, with_labels=True)
         plt.show()
 
+
 #############################################################################################################################
-def dump_blockchain_tree(self, filename): # Dumping the blockchain tree 
-    with open(filename, 'w') as f:
-        f.write(json.dumps(self.blockchain_tree, indent=4))
+    def dump_blockchain_tree(self): # Dumping the blockchain tree object
+        filename = "blockchain_tree/"+str(self.pid)+".txt"
+        sys.stdout = open(filename, 'w')
+        tree = Tree()
+        tree.create_node("Block_0", "Block_0")
+        for block in self.blockchain_tree.keys():
+            if block == "Block_0":
+                continue
+            tree.create_node(block,block, parent = self.blockchain_tree[block]['parent'])
+        tree.show()
 
-def dump_blockchain(self, filename): # Dumping the blockchain
-    with open(filename, 'w') as f:
-        f.write(json.dumps(self.blockchain, indent=4))
-
-def dump_networkx_graph(self, filename): # Dumping the networkx graph
-    G = nx.Graph()
-    for key, value in self.blockchain_tree.items():
-        if value['parent'] is not None:
-            G.add_node(key)
-            G.add_edge(key, value['parent'])
-        else:
-            G.add_node(key)
-    nx.write_gml(G, filename)
-
+    def dump_networkx_graph(self): # Dumping the networkx graph object
+        filename = "networkx_graph/"+str(self.pid)+".png"
+        G = nx.Graph()
+        for key, value in self.blockchain_tree.items():
+            if value['parent'] is not None:
+                G.add_node(key)
+                G.add_edge(key, value['parent'])
+            else:
+                G.add_node(key)
+        plt.figure(figsize=(10, 10))
+        nx.draw(G, with_labels=True)
+        plt.savefig(filename, format="PNG")
+        plt.close()
+        
+    def dump_blockchain_tree_dict(self): # Dumping the blockchain tree dictionary object
+        filename = "blockchain_tree_dict/"+str(self.pid)+".txt"
+        with open(filename, 'wb') as f:
+            f.write(json.dumps(self.blockchain_tree).encode('utf-8'))
 #############################################################################################################################
 
 # Testing the code
 if __name__ == "__main__":
-    N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100,100)
-    N.add_block(Block(1, "Block_0", 0,[100,100], ["txn_1", "txn_2"],2))
-    N.add_block(Block(2, "Block_0", 1, [100,100],["txn_3", "txn_4"],2))
-    N.add_block(Block(3, "Block_1", 2,[100,100], ["txn_5", "txn_6"],2))
+    N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100)
     print(N.blockchain_tree)
     print(N.find_longest_chain())
     print(f"Maximum length: {N.max_len}")
     print(N.included_txn)
-    N.add_txn(N.included_txn[2]) 
     print(N.txn_list)
     N.add_txn("txn_3")
 

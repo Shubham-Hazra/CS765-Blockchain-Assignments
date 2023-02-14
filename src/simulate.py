@@ -1,12 +1,12 @@
 import random
+import sys
 from queue import PriorityQueue
 
 from treelib import Node, Tree
 
-from event import CreateTXN, Event, MineBlock,ForwardBlock, ReceiveTXN
-from network import Network
 from block import Block
-import sys
+from event import CreateTXN, Event, ForwardBlock, MineBlock, ReceiveTXN
+from network import Network
 
 
 class Simulator:
@@ -37,7 +37,7 @@ class Simulator:
             ))
         # nodes_to_mine = random.sample(self.N.nodes,5) # HYPERPARAMETER HERE TO TUNE
          
-        for node in self.N.nodes[0:3]:
+        for node in self.N.nodes[0:1]:
             # Randomly choosing a node and starting the mining process
             # self.num_min_events+=1
             PoW_delay = node.get_PoW_delay()
@@ -106,9 +106,9 @@ class Simulator:
 
 
 # Test
-S = Simulator(100, 10, 30, 1000, 6, 10000)
+if __name__ == "__main__":
+    S = Simulator(100, 10, 30, 1000, 6, 10000)
 # S.run(10)
-
 # node = random.sample(self.N.nodes,1)[0]
 # if random.random() > 0.8:
 #     self.events.put(CreateTXN(
