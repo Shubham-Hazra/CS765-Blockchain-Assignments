@@ -22,11 +22,8 @@ if __name__ == "__main__":
         shutil.rmtree('blockchain_tree')
     if 'networkx_graph' in folders:
         shutil.rmtree('networkx_graph')
-    if 'blockchain_tree_dict' in folders:
-        shutil.rmtree('blockchain_tree_dict')
     os.mkdir('blockchain_tree')
     os.mkdir('networkx_graph')
-    os.mkdir('blockchain_tree_dict')
     print(f"Converting blockchain tree graphs to png and saving to networkx_graph. This step may take a while...")
     for node in simulator.N.nodes:
         node.dump_blockchain_tree()
