@@ -5,6 +5,7 @@ from copy import deepcopy
 from block import Block
 from network import Network
 from transaction import Transaction
+import sys
 
 
 class Event(object):
@@ -80,12 +81,13 @@ class CreateTXN(Event):
             ))
         
         # OPTIONAL: SPAWN ANOTHER CREATE TXN EVENT AFTER THE CURRENT ONE - JUST SO THAT THE QUEUE DOES NOT BECOME EMPTY
-        # simulator.events.put(CreateTXN(
-        #     self.node_id,
-        #     self.node_id,
-        #     self.run_time,
-        #     self.run_time + simulator.transaction_delay()
-        # ))
+        if random.random()>0.6:
+            simulator.events.put(CreateTXN(
+                self.node_id,
+                self.node_id,
+                self.run_time,
+                self.run_time + simulator.transaction_delay()
+            ))
 
  # VERIFIED
 class ReceiveTXN(Event):
@@ -141,13 +143,22 @@ class ForwardBlock(Event):
             # Add the block to the blockchain of the node and remove common TXNs from the TXN pool of the node
             # OR Add the block to the buffer
             # Make a copy of the block 
-            new_block = deepcopy(self.block)
+            # received_block = deepcopy(self.block)
 
             # The following events take place on hearing a TXN
             # 1. Update the TXN list seen 
             # 2. Add the block to blockchain in parent chain - if parent is present, else add it to the buffer
             # 3. Update the cache - check whether there is a block in buffer whose parent has arrived 
-            current.add_block(simulator, new_block)
+            if not current.add_block(simulator, self.block):
+                print("BLOCK ERROR on",current.pid,": ERROR IN ADDING BLOCK DUE TO VALIDATION")
+                # print("ERRANEOUS BLOCK")
+                # self.block.print_block()
+                return False
+            self.block.print_block()
+            # print(current.blockchain)
+            # print(current.add_block(simulator, self.block))
+            # print(current.blockchain)
+            # sys.exit(0)
 
 
             # Now, the following 3 things can happen:
@@ -156,7 +167,7 @@ class ForwardBlock(Event):
             # 3. block is in blockchain and longest chain length remains the same
 
             #.1. block ends up in the buffer - do not forward
-            if new_block in current.block_buffer:
+            if self.block in current.block_buffer:
                 print("BLOCK IS IN BUFFER. PARENT HAS NOT ARRIVED")
                 return 
             # Else forward            
@@ -165,7 +176,7 @@ class ForwardBlock(Event):
             # Append information about chain length BEFORE adding the new block in the blockchain
             current.blocksReceiveTime.append([self.run_time,chain_length_before_adding]) # To store the execution time of the event so that we can ensure no block has arrived between t_k and T_k
 
-            print("previous ID of the block is",new_block.previous_id)
+            print("previous ID of the block is",self.block.previous_id)
             #######################################################################################################################################
             # After the block receives the Block from its peers and the length of the longest chain is increased, The node starts the PoW again - See last paragraph of the Problem statement 7th statement
             #######################################################################################################################################
@@ -290,9 +301,12 @@ class MineBlock(Event):
         
         print("MINING SUCCESSFUL: NEW BLOCK GENERATED")
         self.block.print_block()
+        simulator.global_Blocks[self.block.block_id] = self.block
 
         # Add the block to my chain
-        current.add_block(simulator, self.block)
+        if not current.add_block(simulator, self.block):
+            print("BLOCK ERROR on",current.pid,": ERROR IN ADDING BLOCK DUE TO VALIDATION")
+            return False
 
         # Forwarding the block to its peers
         for neighbor in N.G.neighbors(self.node_id):
@@ -309,20 +323,3 @@ class MineBlock(Event):
                     self.run_time,
                     self.run_time + t
                 ))
-
-
-
-
-
-
-        # simulator.num_min_events-=1
-
-        # PoW_delay = current.get_PoW_delay()
-        # print("PoW delay for", self.node_id,"is",PoW_delay)
-
-        # simulator.events.put(MineBlock( ################ THIS CORRESPONDS TO TIME t_k - the TIME FROM WHICH THE NODE WAITS TO CHECK WHETHER ANY OTHER BLCK RRIVES OR NOT (for T_k time)
-        #     self.node_id,
-        #     self.node_id,
-        #     self.run_time,
-        #     self.run_time + PoW_delay# Updated block_delay() as described in simulating PoW section
-        # ))

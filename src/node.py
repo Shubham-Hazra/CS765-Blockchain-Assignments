@@ -9,8 +9,6 @@ from treelib import Tree
 
 from block import *
 
-# from event import *
-
 
 class Node:
     def __init__(self, pid, attrb, num_nodes):
@@ -38,14 +36,18 @@ class Node:
     # VERIFIED
     # Function to add a block to the blockchain
     def add_block(self,simulator, block):
-        block.transactions = block.transactions[:-1]
+        if block.block_id in self.blockchain.keys():
+            return False
+        # Extracting the non-mining fee TXNs
+        block.trasactions = block.transactions[:-1]
 
         # Updating the list of transactions that the peer has seen 
         self.update_txn_list(block) 
         
         # Add block to blockchain or in the buffer
         if block.previous_id in self.blockchain.keys(): # Checking if the parent block is already in the blockchain
-            self.add_block_to_chain(simulator, block)
+            if not self.add_block_to_chain(simulator, block): # Return false if validation is wrong
+                return False
         elif block.previous_id not in self.block_buffer:
             self.block_buffer.add(block) # Adding the block to the block buffer
 
@@ -53,9 +55,11 @@ class Node:
         to_discard = set()
         for block in self.block_buffer:
             if block.previous_id in self.blockchain.keys():
-                self.add_block_to_chain(simulator, block)
+                if not self.add_block_to_chain(simulator, block):
+                    return False
                 to_discard.add(block)
         self.block_buffer = self.block_buffer - to_discard
+        return True
     
     # VERIFIED
     # Adds block to the longest chain in the blockchain after validating the TXNs
@@ -70,6 +74,7 @@ class Node:
                 self.update_included_txn() # Updating the list of transactions that the peer has included in the longest chain
                 self.update_txn_pool() # Updating the list of transactions that the peer can include in a block
             print(f"{self.pid} says {block.block_id} is valid and added to its blockchain")
+            print("HELLO")
             return True
         else:
             print(f"{self.pid} says {block.block_id} is invalid")
@@ -81,8 +86,6 @@ class Node:
     # SIMULATOR MAY GENERATE BLOCKS WITH SAME TXNs, BUT RECEIVING NODE WILL NOT VALIDATE
     # This only verifies whether duplicate TXNs are there in the block - validity of TXNs is checked in another function
     def validate_block(self,simulator, block):
-        
-
         # Find all the TXNs in the longest chain (parent TXNs) and checks whether TXNs match with the TXns in the block - if yes, then reject, else, attach
         parent_txns = self.find_parent_txns(block)
 
@@ -147,6 +150,12 @@ class Node:
     
     def update_txn_list(self,block):
         self.txn_list = self.txn_list|set(block.transactions)
+        to_discard = set()
+        for txn in self.txn_list:
+            if int(txn[4:]) < 0:
+                to_discard.add(txn)
+        self.txn_list-=to_discard
+
 
     # VERIFIED
     # Function to update the transaction pool
@@ -204,6 +213,7 @@ class Node:
     # Other nodes will check the balances and 
     def update_balances(self,simulator,block):
         # Updating the normal TXNs balances 
+        print(block.transactions)
         for txn_id in block.transactions[:-1]:
             txn = simulator.global_transactions[txn_id]
             block.balances[txn.sender_id]-=txn.amount
@@ -232,15 +242,15 @@ class Node:
         plt.show()
 
 #############################################################################################################################
-def dump_blockchain_tree(self, filename): # Dumping the blockchain tree 
-    with open(filename, 'w') as f:
+def dump_blockchain_tree(self): # Dumping the blockchain tree 
+    with open("blockchain_tree/"+self.pid+".pkl", 'w') as f:
         f.write(json.dumps(self.blockchain_tree, indent=4))
 
-def dump_blockchain(self, filename): # Dumping the blockchain
-    with open(filename, 'w') as f:
+def dump_blockchain(self): # Dumping the blockchain
+    with open("blockchain/"+self.pid+".pkl", 'w') as f:
         f.write(json.dumps(self.blockchain, indent=4))
 
-def dump_networkx_graph(self, filename): # Dumping the networkx graph
+def dump_networkx_graph(self): # Dumping the networkx graph
     G = nx.Graph()
     for key, value in self.blockchain_tree.items():
         if value['parent'] is not None:
@@ -254,10 +264,10 @@ def dump_networkx_graph(self, filename): # Dumping the networkx graph
 
 # Testing the code
 if __name__ == "__main__":
-    N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1}, 100,100)
-    N.add_block(Block(1, "Block_0", 0,[100,100], ["txn_1", "txn_2"],2))
-    N.add_block(Block(2, "Block_0", 1, [100,100],["txn_3", "txn_4"],2))
-    N.add_block(Block(3, "Block_1", 2,[100,100], ["txn_5", "txn_6"],2))
+    N = Node(1, {"cpu": "low", "speed": "high","hashing_power" : 0.1, "I":0.3},100)
+    N.add_block(Block(1, "Block_0", 0, ["txn_1", "txn_2"],14,[100,100],1,0))
+    N.add_block(Block(2, "Block_0", 1,["txn_3", "txn_4"],14,[100,100],2,0))
+    N.add_block(Block(3, "Block_1", 2,  ["txn_5", "txn_6"],14,[100,100],3,0))
     print(N.blockchain_tree)
     print(N.find_longest_chain())
     print(f"Maximum length: {N.max_len}")
