@@ -1,13 +1,14 @@
 import random
+import sys
 from queue import PriorityQueue
 
 from treelib import Node, Tree
 
-from event import CreateTXN, Event, MineBlock,ForwardBlock, ReceiveTXN
-from network import Network
 from block import Block
 from copy import deepcopy
 import sys
+from event import CreateTXN, Event, ForwardBlock, MineBlock, ReceiveTXN
+from network import Network
 
 
 class Simulator:
@@ -116,7 +117,6 @@ class Simulator:
 if __name__ == '__main__':
     S = Simulator(100, 10, 30, 1000, 6, 10000)
 # S.run(10)
-
 # node = random.sample(self.N.nodes,1)[0]
 # if random.random() > 0.8:
 #     self.events.put(CreateTXN(
