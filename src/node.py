@@ -20,7 +20,7 @@ class Node:
         self.hashing_power = attrb['hashing_power']  # Hashing power of the peer
         self.speed = attrb['speed']  # Speed of the peer
         self.I = attrb['I']  # Average interarrival time of the blocks
-        self.blockchain_tree = {"Block_0": {"parent": None}} # Blockchain tree of the peer
+        self.blockchain_tree = {"Block_0": {"parent": None, "time":0}} # Blockchain tree of the peer
         self.blockchain = {"Block_0":Block(None,None,None,None,0,[100]*num_nodes,0,0)}  # Blockchain of the peer - stores the block objects, Initially the genesis block is added
         self.longest_chain = ["Block_0"] # Longest chain of the peer as a list of block ids
         self.max_len = 0  # Length of the longest chain
@@ -68,7 +68,7 @@ class Node:
     def add_block_to_chain(self,simulator, block):
         if self.validate_block(simulator, block): # Checking if the block is valid
             self.blockchain[block.block_id] = block # Adding the block to the blockchain
-            self.blockchain_tree[block.block_id] = {"parent": block.previous_id} # Adding the block to the blockchain tree
+            self.blockchain_tree[block.block_id] = {"parent": block.previous_id, "time": simulator.curr_time} # Adding the block to the blockchain tree
             self.blockchain[block.block_id].length = self.blockchain[block.previous_id].length + 1 # Updating the length of the block
             if self.blockchain[block.block_id].length > self.max_len: # Checking if the block is the longest block
                 self.max_len = self.blockchain[block.block_id].length # Updating the length of the longest chain
@@ -249,11 +249,11 @@ class Node:
         filename = "blockchain_tree/"+str(self.pid)+".txt"
         sys.stdout = open(filename, 'w')
         tree = Tree()
-        tree.create_node("Block_0", "Block_0")
+        tree.create_node("Block_0_0", "Block_0_0")
         for block in self.blockchain_tree.keys():
             if block == "Block_0":
                 continue
-            tree.create_node(block,block, parent = self.blockchain_tree[block]['parent'])
+            tree.create_node(block+"_"+str(self.blockchain_tree[block]["time"]),block+"_"+str(self.blockchain_tree[block]["time"]), parent = self.blockchain_tree[block]['parent']+"_"+str(self.blockchain_tree[self.blockchain_tree[block]['parent']]["time"]))
         tree.show()
 
     def dump_networkx_graph(self): # Dumping the networkx graph object

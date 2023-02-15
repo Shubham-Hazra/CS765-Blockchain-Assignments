@@ -54,3 +54,5 @@ Where:
 
 After all the steps are completed, the blockchain tree, blockchain tree dictionary and the networkx graph converted to PNGs are saved to the directories blockchain_tree, blockchain_tree_dict and networkx_graph respectively. \
 The conversion from networkx graphs to PNGs may take a while depending upon the number of nodes. 
+
+NOTE: The .txt files contain Blockchain in the following format Block_\<Block_ID\>_\<Time at which block was received at the node\>
